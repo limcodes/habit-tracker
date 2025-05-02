@@ -8,6 +8,8 @@ function App() {
   const [user] = useAuthState(auth);
   const [habits, setHabits] = useState([]);
   const [newHabitName, setNewHabitName] = useState('');
+  const [editingHabitId, setEditingHabitId] = useState(null);
+  const [editHabitName, setEditHabitName] = useState('');
   const today = new Date();
 
   // Fetch habits when user changes
@@ -65,6 +67,30 @@ function App() {
     setHabits(habits.filter(habit => habit.id !== habitId));
   };
 
+  const startEditHabit = (habit) => {
+    setEditingHabitId(habit.id);
+    setEditHabitName(habit.name);
+  };
+
+  const saveEditHabit = () => {
+    if (!editHabitName.trim()) return;
+
+    const updatedHabits = habits.map(habit => 
+      habit.id === editingHabitId 
+        ? { ...habit, name: editHabitName.trim() } 
+        : habit
+    );
+
+    setHabits(updatedHabits);
+    setEditingHabitId(null);
+    setEditHabitName('');
+  };
+
+  const cancelEditHabit = () => {
+    setEditingHabitId(null);
+    setEditHabitName('');
+  };
+
   const handleSignIn = async () => {
     await signInWithGoogle();
   };
@@ -81,19 +107,10 @@ function App() {
   return (
     <div className="App">
       <header>
-        <h1>Habit Tracker</h1>
+        <h2>Simple Habits</h2>
         {user ? (
           <div className="user-info">
-            <img 
-              src={user.photoURL || '/default-avatar.png'} 
-              alt={user.displayName || 'User'}
-              className="user-avatar" 
-              onError={(e) => {
-                e.target.onerror = null; // Prevent infinite loop
-                e.target.src = '/default-avatar.png';
-              }}
-            />
-            <span>{user.displayName || 'User'}</span>
+            <span>{user.email}</span>
             <button onClick={handleSignOut}>Sign Out</button>
           </div>
         ) : (
@@ -134,11 +151,32 @@ function App() {
               {habits.map(habit => (
                 <tr key={habit.id}>
                   <td>
-                    {habit.name}
-                    <button 
-                      className="delete-habit-btn" 
-                      onClick={() => deleteHabit(habit.id)}
-                    >✕</button>
+                    {editingHabitId === habit.id ? (
+                      <div className="habit-edit">
+                        <input
+                          type="text"
+                          value={editHabitName}
+                          onChange={(e) => setEditHabitName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveEditHabit();
+                            if (e.key === 'Escape') cancelEditHabit();
+                          }}
+                          autoFocus
+                        />
+                        <div className="habit-edit-actions">
+                          <button onClick={saveEditHabit}>Save</button>
+                          <button onClick={cancelEditHabit}>Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="habit-name">
+                        <span onClick={() => startEditHabit(habit)}>{habit.name}</span>
+                        <button 
+                          className="delete-habit-btn" 
+                          onClick={() => deleteHabit(habit.id)}
+                        >✕</button>
+                      </div>
+                    )}
                   </td>
                   {monthDays.map(day => {
                     const dateString = format(day, 'yyyy-MM-dd');

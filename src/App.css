@@ -21,11 +21,7 @@ header {
   gap: 10px;
 }
 
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-}
+
 
 .habit-input {
   display: flex;
@@ -94,6 +90,56 @@ header button {
   margin-left: 10px;
   cursor: pointer;
   font-size: 0.8em;
+}
+
+.habit-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.habit-name span {
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.habit-name span:hover {
+  color: #2196F3;
+}
+
+.habit-edit {
+  display: flex;
+  flex-direction: column;
+}
+
+.habit-edit input {
+  padding: 5px;
+  margin-bottom: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.habit-edit-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.habit-edit-actions button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8em;
+}
+
+.habit-edit-actions button:first-child {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.habit-edit-actions button:last-child {
+  background-color: #f44336;
+  color: white;
 }
 
 .today-column {
