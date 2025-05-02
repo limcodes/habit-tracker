@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, query, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, query, getDocs, doc, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 
 // Validate Firebase configuration
@@ -77,30 +77,36 @@ export const saveHabitsToFirestore = async (userId, habits) => {
     // Reference to the user's habits collection
     const userHabitsRef = collection(db, 'users', userId, 'habits');
 
-    // Delete existing habits
+    // Use a batch write for atomic operations
+    const batch = writeBatch(db);
+
+    // Delete existing habits and add new ones
     const existingHabitsQuery = query(userHabitsRef);
     const existingHabitsDocs = await getDocs(existingHabitsQuery);
-    const deletePromises = existingHabitsDocs.docs.map(async (existingDoc) => {
-      await deleteDoc(existingDoc.ref);
+    
+    // Mark existing docs for deletion
+    existingHabitsDocs.docs.forEach(existingDoc => {
+      batch.delete(existingDoc.ref);
     });
-    await Promise.all(deletePromises);
 
     // Add new habits
-    const habitsPromises = habits.map(async (habit) => {
+    habits.forEach(habit => {
       // Validate habit data
       if (!habit.name) {
         console.warn(`Skipping invalid habit: ${JSON.stringify(habit)}`);
-        return null;
+        return;
       }
 
-      return await addDoc(userHabitsRef, {
-        id: habit.id || Date.now().toString(),
+      const habitDocRef = doc(userHabitsRef, habit.id);
+      batch.set(habitDocRef, {
+        id: habit.id,
         name: habit.name,
         completedDays: habit.completedDays || []
       });
-    }).filter(promise => promise !== null);
+    });
 
-    await Promise.all(habitsPromises);
+    // Commit the batch
+    await batch.commit();
   } catch (error) {
     console.error('Error saving habits:', error);
     if (error.code === 'permission-denied') {

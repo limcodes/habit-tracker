@@ -25,14 +25,28 @@ function App() {
     fetchHabits();
   }, [user]);
 
-  // Save habits to Firestore whenever they change
+  // Save habits to Firestore with debounce
   useEffect(() => {
+    let timeoutId;
     const saveHabits = async () => {
       if (user) {
-        await saveHabitsToFirestore(user.uid, habits);
+        try {
+          await saveHabitsToFirestore(user.uid, habits);
+        } catch (error) {
+          console.error('Failed to save habits:', error);
+          // Optionally show a user-friendly error notification
+        }
       }
     };
-    saveHabits();
+
+    // Debounce save to reduce unnecessary Firestore writes
+    if (user) {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(saveHabits, 500); // 500ms delay
+    }
+
+    // Cleanup timeout on component unmount or dependency change
+    return () => clearTimeout(timeoutId);
   }, [habits, user]);
 
   const addHabit = () => {
