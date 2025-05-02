@@ -39,7 +39,7 @@ function App() {
     if (!user) return;
     if (newHabitName.trim()) {
       const newHabit = {
-        id: Date.now().toString(),
+        id: `habit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: newHabitName,
         completedDays: []
       };
