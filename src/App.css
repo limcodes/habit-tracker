@@ -1,38 +1,119 @@
 .App {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 10px;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0 10px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.habit-input {
+  display: flex;
+  margin-bottom: 15px;
+  padding: 0 10px;
+}
+
+.habit-input input {
+  flex-grow: 1;
+  padding: 8px;
+  margin-right: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.habit-input button, header button {
+  padding: 8px 12px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+header button {
+  background-color: #2196F3;
+}
+
+.habit-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.habit-table th, .habit-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.habit-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.habit-cell {
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+.habit-cell.completed {
+  background-color: #4CAF50;
   color: white;
+  font-weight: bold;
 }
 
-.App-link {
-  color: #61dafb;
+.habit-cell.today {
+  border: 2px solid #2196F3;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.delete-habit-btn {
+  background: none;
+  border: none;
+  color: #f44336;
+  margin-left: 10px;
+  cursor: pointer;
+  font-size: 0.8em;
+}
+
+.today-column {
+  background-color: rgba(33, 150, 243, 0.1);
+  font-weight: bold;
+}
+
+.habit-table td:first-child {
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (max-width: 600px) {
+  .habit-table {
+    font-size: 0.8em;
   }
-  to {
-    transform: rotate(360deg);
+  
+  .habit-table th, .habit-table td {
+    padding: 5px;
   }
 }

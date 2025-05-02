@@ -1,23 +1,165 @@
-import logo from './logo.svg';
+import React, { useState, useEffect } from 'react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from 'date-fns';
+import { auth, signInWithGoogle, signOutUser, saveHabitsToFirestore, fetchHabitsFromFirestore } from './firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
 import './App.css';
 
 function App() {
+  const [user] = useAuthState(auth);
+  const [habits, setHabits] = useState([]);
+  const [newHabitName, setNewHabitName] = useState('');
+  const today = new Date();
+
+  // Fetch habits when user changes
+  useEffect(() => {
+    const fetchHabits = async () => {
+      if (user) {
+        const fetchedHabits = await fetchHabitsFromFirestore(user.uid);
+        setHabits(fetchedHabits);
+      } else {
+        setHabits([]);
+      }
+    };
+    fetchHabits();
+  }, [user]);
+
+  // Save habits to Firestore whenever they change
+  useEffect(() => {
+    const saveHabits = async () => {
+      if (user) {
+        await saveHabitsToFirestore(user.uid, habits);
+      }
+    };
+    saveHabits();
+  }, [habits, user]);
+
+  const addHabit = () => {
+    if (!user) return;
+    if (newHabitName.trim()) {
+      const newHabit = {
+        id: Date.now().toString(),
+        name: newHabitName,
+        completedDays: []
+      };
+      setHabits([...habits, newHabit]);
+      setNewHabitName('');
+    }
+  };
+
+  const toggleHabitCompletion = (habitId, dateString) => {
+    if (!user) return;
+    const updatedHabits = habits.map(habit => {
+      if (habit.id === habitId) {
+        const completedDays = habit.completedDays.includes(dateString)
+          ? habit.completedDays.filter(day => day !== dateString)
+          : [...habit.completedDays, dateString];
+        return { ...habit, completedDays };
+      }
+      return habit;
+    });
+    setHabits(updatedHabits);
+  };
+
+  const deleteHabit = (habitId) => {
+    if (!user) return;
+    setHabits(habits.filter(habit => habit.id !== habitId));
+  };
+
+  const handleSignIn = async () => {
+    await signInWithGoogle();
+  };
+
+  const handleSignOut = async () => {
+    await signOutUser();
+  };
+
+  const monthDays = eachDayOfInterval({
+    start: startOfMonth(today),
+    end: endOfMonth(today)
+  });
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+      <header>
+        <h1>Habit Tracker</h1>
+        {user ? (
+          <div className="user-info">
+            <img 
+              src={user.photoURL || '/default-avatar.png'} 
+              alt={user.displayName || 'User'}
+              className="user-avatar" 
+              onError={(e) => {
+                e.target.onerror = null; // Prevent infinite loop
+                e.target.src = '/default-avatar.png';
+              }}
+            />
+            <span>{user.displayName || 'User'}</span>
+            <button onClick={handleSignOut}>Sign Out</button>
+          </div>
+        ) : (
+          <button onClick={handleSignIn}>Sign In with Google</button>
+        )}
       </header>
+
+      {user && (
+        <>
+          <div className="habit-input">
+            <input
+              type="text"
+              value={newHabitName}
+              onChange={(e) => setNewHabitName(e.target.value)}
+              placeholder="Enter a new habit"
+            />
+            <button onClick={addHabit}>Add Habit</button>
+          </div>
+          <table className="habit-table">
+            <thead>
+              <tr>
+                <th>Habit</th>
+                {monthDays.map(day => {
+                  const dateString = format(day, 'yyyy-MM-dd');
+                  const isCurrentDay = isToday(day);
+                  return (
+                    <th 
+                      key={dateString} 
+                      className={isCurrentDay ? 'today-column' : ''}
+                    >
+                      {format(day, 'd')}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {habits.map(habit => (
+                <tr key={habit.id}>
+                  <td>
+                    {habit.name}
+                    <button 
+                      className="delete-habit-btn" 
+                      onClick={() => deleteHabit(habit.id)}
+                    >✕</button>
+                  </td>
+                  {monthDays.map(day => {
+                    const dateString = format(day, 'yyyy-MM-dd');
+                    const isCompleted = habit.completedDays.includes(dateString);
+                    const isCurrentDay = isToday(day);
+                    return (
+                      <td
+                        key={dateString}
+                        className={`habit-cell ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today-column' : ''}`}
+                        onClick={() => toggleHabitCompletion(habit.id, dateString)}
+                      >
+                        {isCompleted ? '✓' : ''}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
     </div>
   );
 }
