@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from 'date-fns';
-import { auth, signInWithGoogle, signOutUser, saveHabitsToFirestore, fetchHabitsFromFirestore } from './firebase';
+import { addDoc, collection, query, getDocs, orderBy, Timestamp } from 'firebase/firestore';
+import { auth, db, signInWithGoogle, signOutUser, saveHabitsToFirestore, fetchHabitsFromFirestore } from './firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import './App.css';
 
 function App() {
+  const today = new Date();
   const [user] = useAuthState(auth);
   const [habits, setHabits] = useState([]);
   const [newHabitName, setNewHabitName] = useState('');
   const [editingHabitId, setEditingHabitId] = useState(null);
   const [editHabitName, setEditHabitName] = useState('');
-  const today = new Date();
+  const [notes, setNotes] = useState([]);
+  const [newNote, setNewNote] = useState('');
+  const [selectedNoteDate, setSelectedNoteDate] = useState(format(today, 'yyyy-MM-dd'));
 
   // Fetch habits when user changes
   useEffect(() => {
@@ -48,6 +52,29 @@ function App() {
     // Cleanup timeout on component unmount or dependency change
     return () => clearTimeout(timeoutId);
   }, [habits, user]);
+
+  // Fetch notes when user changes
+  useEffect(() => {
+    const fetchNotes = async () => {
+      if (user) {
+        try {
+          const userNotesRef = collection(db, 'users', user.uid, 'notes');
+          const q = query(userNotesRef, orderBy('createdAt', 'desc'));
+          const querySnapshot = await getDocs(q);
+          const fetchedNotes = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setNotes(fetchedNotes);
+        } catch (error) {
+          console.error('Error fetching notes:', error);
+        }
+      } else {
+        setNotes([]);
+      }
+    };
+    fetchNotes();
+  }, [user]);
 
   const addHabit = () => {
     if (!user) return;
@@ -103,6 +130,30 @@ function App() {
   const cancelEditHabit = () => {
     setEditingHabitId(null);
     setEditHabitName('');
+  };
+
+  const addNote = async () => {
+    if (!user) return;
+    if (!newNote.trim()) return;
+
+    try {
+      const userNotesRef = collection(db, 'users', user.uid, 'notes');
+      const noteData = {
+        text: newNote.trim(),
+        date: selectedNoteDate,
+        createdAt: Timestamp.now()
+      };
+      
+      const docRef = await addDoc(userNotesRef, noteData);
+      
+      // Update local state
+      setNotes([{ id: docRef.id, ...noteData }, ...notes]);
+      
+      // Reset input
+      setNewNote('');
+    } catch (error) {
+      console.error('Error adding note:', error);
+    }
   };
 
   const handleSignIn = async () => {
@@ -210,6 +261,35 @@ function App() {
               placeholder="Enter a new habit"
             />
             <button onClick={addHabit}>Add Habit</button>
+          </div>
+
+          <div className="notes-section">
+            <h3>Daily Notes</h3>
+            <div className="notes-input">
+              <input
+                type="date"
+                value={selectedNoteDate}
+                onChange={(e) => setSelectedNoteDate(e.target.value)}
+              />
+              <textarea
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                placeholder="Write your daily note here..."
+                rows="3"
+              />
+              <button onClick={addNote}>Add Note</button>
+            </div>
+
+            <div className="notes-list">
+              {notes.map((note) => (
+                <div key={note.id} className="note-item">
+                  <div className="note-header">
+                    <span className="note-date">{note.date}</span>
+                  </div>
+                  <p className="note-text">{note.text}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
