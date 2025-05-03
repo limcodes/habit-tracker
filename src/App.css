@@ -2,9 +2,12 @@
   width: 100%;
   max-width: 100%;
   margin: 0;
-  padding: 10px;
   font-family: Arial, sans-serif;
   box-sizing: border-box;
+}
+
+body {
+  background: #F8F5F3;
 }
 
 header {
@@ -12,21 +15,27 @@ header {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  padding: 0 10px;
+  padding: 0px 20px;
+  border-bottom: 1px solid #ddd;
+  background: white;
+}
+
+header h2 {
+  font-size: 1.2em;
 }
 
 .user-info {
   display: flex;
   align-items: center;
   gap: 10px;
+  font-size: 0.9em;
+  color: #333;
 }
 
 .habit-input {
   display: flex;
   margin-bottom: 15px;
-  padding: 0 10px;
   width: 300px;
-  margin: 0 auto;
 }
 
 .habit-input input {
@@ -37,26 +46,39 @@ header {
   border-radius: 4px;
 }
 
-.habit-input button, header button {
-  padding: 8px 12px;
-  background-color: #4CAF50;
+.habit-input button, header button, .notes-input button {
+  padding: 10px 15px;
   color: white;
   border: none;
+  font-weight: 600;
   border-radius: 4px;
   cursor: pointer;
+  max-width: 120px;
+  background-color: #51A868;
+  align-self: flex-start;
 }
 
 header button {
-  background-color: #2196F3;
+  background-color: transparent;
+  border: 1px solid #333;
+  color: #333;
+  font-size: 0.9em;
+  max-width: none;
 }
 
-
+.habit-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
 .habit-table {
   border-collapse: collapse;
   width: auto;
-  margin: 20px auto;
-  background-color: white;
+  margin: 0 auto;
+  background-color: rgba(255,255,255,0.8);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  border-radius: 4px;
 }
 
 .habit-table th, .habit-table td {
@@ -66,14 +88,14 @@ header button {
 }
 
 .habit-table th {
-  background-color: #f2f2f2;
+  background-color: rgba(0,0,0,0.1);
   font-weight: bold;
 }
 
 .habit-table .date-cell {
-  width: 20px;
-  min-width: 20px;
-  max-width: 20px;
+  width: 25px;
+  min-width: 25px;
+  max-width: 25px;
   padding: 4px;
 }
 
@@ -83,7 +105,7 @@ header button {
 }
 
 .habit-cell.completed {
-  background-color: #4CAF50;
+  background-color: #51A868;
   color: white;
   font-weight: bold;
 }
@@ -156,9 +178,14 @@ header button {
   font-weight: bold;
 }
 
+th.today-column {
+  background: #000;
+  color: #FFF;
+  font-size: 1.2em;
+}
+
 .habit-table td:first-child {
   text-align: left;
-  display: flex;
   align-items: center;
   justify-content: space-between;
 }
@@ -174,12 +201,13 @@ header button {
 }
 
 .notes-section {
-  max-width: 600px;
-  margin: 20px auto;
-  padding: 15px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 540px;
+}
+
+.notes-section h3 {
+  font-size: 1.2em;
+  margin: 0;
+  margin-bottom: 10px;
 }
 
 .notes-input {
@@ -202,23 +230,15 @@ header button {
   resize: vertical;
 }
 
-.notes-input button {
-  padding: 8px 12px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
 .notes-list {
   max-height: 300px;
   overflow-y: auto;
 }
 
 .note-item {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   background-color: white;
-  border: 1px solid #eee;
+  border: 1px solid #ddd;
   border-radius: 4px;
   padding: 10px;
   margin-bottom: 10px;

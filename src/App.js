@@ -234,10 +234,10 @@ function App() {
   return (
     <div className="App">
       <header>
-        <h2>Simple Habits</h2>
+        <h2>Habits Log</h2>
         {user ? (
           <div className="user-info">
-            <span>{user.email}</span>
+            <span>Signed in as {user.email}</span>
             <button onClick={handleSignOut}>Sign Out</button>
           </div>
         ) : (
@@ -247,85 +247,85 @@ function App() {
 
       {user && (
         <div className="habit-container">
-          <table className="habit-table">
-            <thead>
-              <tr>
-                <th>Habit</th>
-                {monthDays.map(day => {
-                  const dateString = format(day, 'yyyy-MM-dd');
-                  const isCurrentDay = isToday(day);
-                  return (
-                    <th 
-                      key={dateString} 
-                      className={`date-cell ${isCurrentDay ? 'today-column' : ''}`}
-                    >
-                      {format(day, 'd')}
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {habits.map(habit => (
-                <tr key={habit.id}>
-                  <td>
-                    {editingHabitId === habit.id ? (
-                      <div className="habit-edit">
-                        <input
-                          type="text"
-                          value={editHabitName}
-                          onChange={(e) => setEditHabitName(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') saveEditHabit();
-                            if (e.key === 'Escape') cancelEditHabit();
-                          }}
-                          autoFocus
-                        />
-                        <div className="habit-edit-actions">
-                          <button onClick={saveEditHabit}>Save</button>
-                          <button onClick={cancelEditHabit}>Cancel</button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="habit-name">
-                        <span onClick={() => startEditHabit(habit)}>{habit.name}</span>
-                        <button 
-                          className="delete-habit-btn" 
-                          onClick={() => deleteHabit(habit.id)}
-                        >✕</button>
-                      </div>
-                    )}
-                  </td>
+          <div className="habit-list">
+            <table className="habit-table">
+              <thead>
+                <tr>
+                  <th>Habit</th>
                   {monthDays.map(day => {
                     const dateString = format(day, 'yyyy-MM-dd');
-                    const isCompleted = habit.completedDays.includes(dateString);
                     const isCurrentDay = isToday(day);
                     return (
-                      <td
-                        key={dateString}
-                        className={`habit-cell date-cell ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today-column' : ''}`}
-                        onClick={() => toggleHabitCompletion(habit.id, dateString)}
+                      <th 
+                        key={dateString} 
+                        className={`date-cell ${isCurrentDay ? 'today-column' : ''}`}
                       >
-                        {isCompleted ? '✓' : ''}
-                      </td>
+                        {format(day, 'd')}
+                      </th>
                     );
                   })}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="habit-input">
-            <input
-              type="text"
-              value={newHabitName}
-              onChange={(e) => setNewHabitName(e.target.value)}
-              placeholder="Enter a new habit"
-            />
-            <button onClick={addHabit}>Add Habit</button>
+              </thead>
+              <tbody>
+                {habits.map(habit => (
+                  <tr key={habit.id}>
+                    <td>
+                      {editingHabitId === habit.id ? (
+                        <div className="habit-edit">
+                          <input
+                            type="text"
+                            value={editHabitName}
+                            onChange={(e) => setEditHabitName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEditHabit();
+                              if (e.key === 'Escape') cancelEditHabit();
+                            }}
+                            autoFocus
+                          />
+                          <div className="habit-edit-actions">
+                            <button onClick={saveEditHabit}>Save</button>
+                            <button onClick={cancelEditHabit}>Cancel</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="habit-name">
+                          <span onClick={() => startEditHabit(habit)}>{habit.name}</span>
+                          <button 
+                            className="delete-habit-btn" 
+                            onClick={() => deleteHabit(habit.id)}
+                          >✕</button>
+                        </div>
+                      )}
+                    </td>
+                    {monthDays.map(day => {
+                      const dateString = format(day, 'yyyy-MM-dd');
+                      const isCompleted = habit.completedDays.includes(dateString);
+                      const isCurrentDay = isToday(day);
+                      return (
+                        <td
+                          key={dateString}
+                          className={`habit-cell date-cell ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today-column' : ''}`}
+                          onClick={() => toggleHabitCompletion(habit.id, dateString)}
+                        >
+                          {isCompleted ? '✓' : ''}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="habit-input">
+              <input
+                type="text"
+                value={newHabitName}
+                onChange={(e) => setNewHabitName(e.target.value)}
+                placeholder="Enter a new habit"
+              />
+              <button onClick={addHabit}>Add Habit</button>
+            </div>              
           </div>
-
           <div className="notes-section">
-            <h3>Daily Notes</h3>
             <div className="notes-input">
               <input
                 type="date"
@@ -335,10 +335,10 @@ function App() {
               <textarea
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
-                placeholder="Write your daily note here..."
+                placeholder="Write your daily log here..."
                 rows="3"
               />
-              <button onClick={addNote}>Add Note</button>
+              <button onClick={addNote}>Add Log</button>
             </div>
 
             <div className="notes-list">
