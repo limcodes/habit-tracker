@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from 'date-fns';
-import { addDoc, collection, query, getDocs, orderBy, Timestamp } from 'firebase/firestore';
+import { addDoc, collection, query, getDocs, orderBy, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db, signInWithGoogle, signOutUser, saveHabitsToFirestore, fetchHabitsFromFirestore } from './firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import './App.css';
@@ -15,6 +15,8 @@ function App() {
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState('');
   const [selectedNoteDate, setSelectedNoteDate] = useState(format(today, 'yyyy-MM-dd'));
+  const [editingNoteId, setEditingNoteId] = useState(null);
+  const [editNoteText, setEditNoteText] = useState('');
 
   // Fetch habits when user changes
   useEffect(() => {
@@ -130,6 +132,65 @@ function App() {
   const cancelEditHabit = () => {
     setEditingHabitId(null);
     setEditHabitName('');
+  };
+
+  const startEditNote = (note) => {
+    setEditingNoteId(note.id);
+    setEditNoteText(note.text);
+    setSelectedNoteDate(note.date);
+  };
+
+  const saveEditNote = async () => {
+    if (!user) return;
+    if (!editNoteText.trim()) return;
+
+    try {
+      // Update note in Firestore
+      const userNotesRef = collection(db, 'users', user.uid, 'notes');
+      const noteDocRef = doc(userNotesRef, editingNoteId);
+      
+      await updateDoc(noteDocRef, {
+        text: editNoteText.trim(),
+        date: selectedNoteDate
+      });
+
+      // Update local state
+      const updatedNotes = notes.map(note => 
+        note.id === editingNoteId 
+          ? { ...note, text: editNoteText.trim(), date: selectedNoteDate } 
+          : note
+      );
+      setNotes(updatedNotes);
+
+      // Reset editing state
+      setEditingNoteId(null);
+      setEditNoteText('');
+    } catch (error) {
+      console.error('Error updating note:', error);
+    }
+  };
+
+  const deleteNote = async (noteId) => {
+    if (!user) return;
+
+    try {
+      // Delete note from Firestore
+      const userNotesRef = collection(db, 'users', user.uid, 'notes');
+      const noteDocRef = doc(userNotesRef, noteId);
+      
+      await deleteDoc(noteDocRef);
+
+      // Update local state
+      const updatedNotes = notes.filter(note => note.id !== noteId);
+      setNotes(updatedNotes);
+    } catch (error) {
+      console.error('Error deleting note:', error);
+    }
+  };
+
+  const cancelEditNote = () => {
+    setEditingNoteId(null);
+    setEditNoteText('');
   };
 
   const addNote = async () => {
@@ -283,10 +344,41 @@ function App() {
             <div className="notes-list">
               {notes.map((note) => (
                 <div key={note.id} className="note-item">
-                  <div className="note-header">
-                    <span className="note-date">{note.date}</span>
-                  </div>
-                  <p className="note-text">{note.text}</p>
+                  {editingNoteId === note.id ? (
+                    <div className="note-edit">
+                      <input
+                        type="date"
+                        value={selectedNoteDate}
+                        onChange={(e) => setSelectedNoteDate(e.target.value)}
+                      />
+                      <textarea
+                        value={editNoteText}
+                        onChange={(e) => setEditNoteText(e.target.value)}
+                        rows="3"
+                      />
+                      <div className="note-edit-actions">
+                        <button onClick={saveEditNote}>Save</button>
+                        <button onClick={cancelEditNote}>Cancel</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="note-header">
+                        <span className="note-date">{note.date}</span>
+                        <div className="note-actions">
+                          <button 
+                            className="edit-note-btn" 
+                            onClick={() => startEditNote(note)}
+                          >✎</button>
+                          <button 
+                            className="delete-note-btn" 
+                            onClick={() => deleteNote(note.id)}
+                          >✕</button>
+                        </div>
+                      </div>
+                      <p className="note-text">{note.text}</p>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
