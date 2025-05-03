@@ -291,7 +291,7 @@ function App() {
                         <div className="habit-name">
                           <span onClick={() => startEditHabit(habit)}>{habit.name}</span>
                           <button 
-                            className="delete-habit-btn" 
+                            className="delete-habit-btn hover-delete" 
                             onClick={() => deleteHabit(habit.id)}
                           >✕</button>
                         </div>
@@ -365,7 +365,7 @@ function App() {
                     <>
                       <div className="note-header">
                         <span className="note-date">{note.date}</span>
-                        <div className="note-actions">
+                        <div className="note-actions hover-actions">
                           <button 
                             className="edit-note-btn" 
                             onClick={() => startEditNote(note)}

@@ -127,6 +127,19 @@ header button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
+  padding-right: 25px;
+}
+
+.delete-habit-btn {
+  position: absolute;
+  right: -5px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.habit-table td:first-child:hover .delete-habit-btn {
+  opacity: 1;
 }
 
 .habit-name span {
@@ -265,11 +278,21 @@ th.today-column {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 5px;
+  position: relative;
+  padding-right: 50px;
 }
 
 .note-actions {
+  position: absolute;
+  right: -5px;
   display: flex;
   gap: 5px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.note-item:hover .note-actions {
+  opacity: 1;
 }
 
 .edit-note-btn, .delete-note-btn {
