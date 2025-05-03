@@ -21,12 +21,12 @@ header {
   gap: 10px;
 }
 
-
-
 .habit-input {
   display: flex;
   margin-bottom: 15px;
   padding: 0 10px;
+  width: 300px;
+  margin: 0 auto;
 }
 
 .habit-input input {
@@ -50,9 +50,11 @@ header button {
   background-color: #2196F3;
 }
 
+
 .habit-table {
-  width: 100%;
   border-collapse: collapse;
+  width: auto;
+  margin: 20px auto;
   background-color: white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -64,8 +66,15 @@ header button {
 }
 
 .habit-table th {
-  background-color: #f4f4f4;
+  background-color: #f2f2f2;
   font-weight: bold;
+}
+
+.habit-table .date-cell {
+  width: 20px;
+  min-width: 20px;
+  max-width: 20px;
+  padding: 4px;
 }
 
 .habit-cell {

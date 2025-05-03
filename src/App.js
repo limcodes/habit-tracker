@@ -113,9 +113,10 @@ function App() {
     await signOutUser();
   };
 
+  // Generate days (past 5 and future 5)
   const monthDays = eachDayOfInterval({
-    start: startOfMonth(today),
-    end: endOfMonth(today)
+    start: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7),
+    end: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
   });
 
   return (
@@ -133,16 +134,7 @@ function App() {
       </header>
 
       {user && (
-        <>
-          <div className="habit-input">
-            <input
-              type="text"
-              value={newHabitName}
-              onChange={(e) => setNewHabitName(e.target.value)}
-              placeholder="Enter a new habit"
-            />
-            <button onClick={addHabit}>Add Habit</button>
-          </div>
+        <div className="habit-container">
           <table className="habit-table">
             <thead>
               <tr>
@@ -153,7 +145,7 @@ function App() {
                   return (
                     <th 
                       key={dateString} 
-                      className={isCurrentDay ? 'today-column' : ''}
+                      className={`date-cell ${isCurrentDay ? 'today-column' : ''}`}
                     >
                       {format(day, 'd')}
                     </th>
@@ -199,7 +191,7 @@ function App() {
                     return (
                       <td
                         key={dateString}
-                        className={`habit-cell ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today-column' : ''}`}
+                        className={`habit-cell date-cell ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today-column' : ''}`}
                         onClick={() => toggleHabitCompletion(habit.id, dateString)}
                       >
                         {isCompleted ? '✓' : ''}
@@ -210,7 +202,16 @@ function App() {
               ))}
             </tbody>
           </table>
-        </>
+          <div className="habit-input">
+            <input
+              type="text"
+              value={newHabitName}
+              onChange={(e) => setNewHabitName(e.target.value)}
+              placeholder="Enter a new habit"
+            />
+            <button onClick={addHabit}>Add Habit</button>
+          </div>
+        </div>
       )}
     </div>
   );
