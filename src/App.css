@@ -169,9 +169,36 @@ header button {
 }
 
 .habit-cell.completed {
-  background-color: #51A868;
-  color: white;
   font-weight: bold;
+  color: white;
+}
+
+.habit-table tbody tr:nth-child(7n+1) .habit-cell.completed {
+  background-color: #4CB944;
+}
+
+.habit-table tbody tr:nth-child(7n+2) .habit-cell.completed {
+  background-color: #3ABEA2;
+}
+
+.habit-table tbody tr:nth-child(7n+3) .habit-cell.completed {
+  background-color: #28C2FF;
+}
+
+.habit-table tbody tr:nth-child(7n+4) .habit-cell.completed {
+  background-color: #4386F1;
+}
+
+.habit-table tbody tr:nth-child(7n+5) .habit-cell.completed {
+  background-color: #5E4AE3;
+}
+
+.habit-table tbody tr:nth-child(7n+6) .habit-cell.completed {
+  background-color: #A44EE1;
+}
+
+.habit-table tbody tr:nth-child(7n) .habit-cell.completed {
+  background-color: #E952DE;
 }
 
 .habit-cell.today {

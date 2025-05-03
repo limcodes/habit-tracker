@@ -307,7 +307,7 @@ function App() {
                           className={`habit-cell date-cell ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today-column' : ''}`}
                           onClick={() => toggleHabitCompletion(habit.id, dateString)}
                         >
-                          {isCompleted ? '✓' : ''}
+                          {isCompleted ? ' ' : ''}
                         </td>
                       );
                     })}
