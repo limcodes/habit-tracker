@@ -260,7 +260,10 @@ function App() {
                         key={dateString} 
                         className={`date-cell ${isCurrentDay ? 'today-column' : ''}`}
                       >
-                        {format(day, 'd')}
+                        <div className="day-header">
+                          <span className="day-of-week">{format(day, 'EEE')}</span>
+                          <span className="day-of-month">{format(day, 'd')}</span>
+                        </div>
                       </th>
                     );
                   })}

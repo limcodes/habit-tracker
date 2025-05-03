@@ -54,7 +54,7 @@
     width: 100%;
     box-sizing: border-box;
   }
-
+  
   .note-item {
     max-width: 100%;
   }
@@ -153,6 +153,24 @@ header button {
 
 .habit-table th {
   background: url(https://grainy-gradients.vercel.app/noise.svg);
+  font-weight: bold;
+}
+
+.day-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.4;
+}
+
+.day-of-week {
+  font-size: 0.7em;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.day-of-month {
+  font-size: 1em;
   font-weight: bold;
 }
 
@@ -285,7 +303,6 @@ header button {
 th.today-column {
   background: #000;
   color: #FFF;
-  font-size: 1.2em;
 }
 
 .habit-table td:first-child {
