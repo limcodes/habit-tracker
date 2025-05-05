@@ -400,6 +400,7 @@ th.today-column {
   position: absolute;
   right: -5px;
   display: flex;
+  align-items: center;
   gap: 5px;
   opacity: 0;
   transition: opacity 0.3s;

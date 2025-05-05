@@ -17,6 +17,7 @@ function App() {
   const [selectedNoteDate, setSelectedNoteDate] = useState(format(today, 'yyyy-MM-dd'));
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editNoteText, setEditNoteText] = useState('');
+  const [stickyNoteId, setStickyNoteId] = useState(null);
 
   // Fetch habits when user changes
   useEffect(() => {
@@ -195,25 +196,42 @@ function App() {
 
   const addNote = async () => {
     if (!user) return;
-    if (!newNote.trim()) return;
+    if (newNote.trim()) {
+      try {
+        const userNotesRef = collection(db, 'users', user.uid, 'notes');
+        const newNoteData = {
+          text: newNote,
+          date: selectedNoteDate,
+          createdAt: Timestamp.now(),
+          isSticky: false
+        };
+        const docRef = await addDoc(userNotesRef, newNoteData);
+        setNotes([...notes, { id: docRef.id, ...newNoteData }]);
+        setNewNote('');
+      } catch (error) {
+        console.error('Error adding note:', error);
+      }
+    }
+  };
 
+  const toggleStickyNote = async (noteId) => {
+    if (!user) return;
     try {
-      const userNotesRef = collection(db, 'users', user.uid, 'notes');
-      const noteData = {
-        text: newNote.trim(),
-        date: selectedNoteDate,
-        createdAt: Timestamp.now()
-      };
-      
-      const docRef = await addDoc(userNotesRef, noteData);
-      
-      // Update local state
-      setNotes([{ id: docRef.id, ...noteData }, ...notes]);
-      
-      // Reset input
-      setNewNote('');
+      const updatedNotes = notes.map(note => {
+        if (note.id === noteId) {
+          return { ...note, isSticky: !note.isSticky };
+        }
+        return note;
+      });
+
+      // Update in Firestore
+      const noteRef = doc(db, 'users', user.uid, 'notes', noteId);
+      await updateDoc(noteRef, { isSticky: !notes.find(n => n.id === noteId).isSticky });
+
+      setNotes(updatedNotes);
+      setStickyNoteId(noteId === stickyNoteId ? null : noteId);
     } catch (error) {
-      console.error('Error adding note:', error);
+      console.error('Error toggling sticky note:', error);
     }
   };
 
@@ -345,8 +363,9 @@ function App() {
             </div>
 
             <div className="notes-list">
-              {notes.map((note) => (
-                <div key={note.id} className="note-item">
+              {/* Sticky Notes */}
+              {notes.filter(note => note.isSticky).map((note) => (
+                <div key={note.id} className="note-item sticky-note">
                   {editingNoteId === note.id ? (
                     <div className="note-edit">
                       <input
@@ -377,6 +396,55 @@ function App() {
                             className="delete-note-btn" 
                             onClick={() => deleteNote(note.id)}
                           >✕</button>
+                          <button 
+                            className="sticky-note-btn" 
+                            onClick={() => toggleStickyNote(note.id)}
+                          >{note.isSticky ? '📌' : '📍'}</button>
+                        </div>
+                      </div>
+                      <p className="note-text">{note.text}</p>
+                    </>
+                  )}
+                </div>
+              ))}
+
+              {/* Regular Notes */}
+              {notes.filter(note => !note.isSticky).map((note) => (
+                <div key={note.id} className="note-item regular-note">
+                  {editingNoteId === note.id ? (
+                    <div className="note-edit">
+                      <input
+                        type="date"
+                        value={selectedNoteDate}
+                        onChange={(e) => setSelectedNoteDate(e.target.value)}
+                      />
+                      <textarea
+                        value={editNoteText}
+                        onChange={(e) => setEditNoteText(e.target.value)}
+                        rows="3"
+                      />
+                      <div className="note-edit-actions">
+                        <button onClick={saveEditNote}>Save</button>
+                        <button onClick={cancelEditNote}>Cancel</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="note-header">
+                        <span className="note-date">{note.date}</span>
+                        <div className="note-actions hover-actions">
+                          <button 
+                            className="edit-note-btn" 
+                            onClick={() => startEditNote(note)}
+                          >✎</button>
+                          <button 
+                            className="delete-note-btn" 
+                            onClick={() => deleteNote(note.id)}
+                          >✕</button>
+                          <button 
+                            className="sticky-note-btn" 
+                            onClick={() => toggleStickyNote(note.id)}
+                          >{note.isSticky ? '📌' : '📍'}</button>
                         </div>
                       </div>
                       <p className="note-text">{note.text}</p>
