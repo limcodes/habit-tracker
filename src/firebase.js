@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, query, getDocs, doc, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { getFirestore, collection, query, getDocs, doc, writeBatch } from 'firebase/firestore';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 
 // Validate Firebase configuration
