@@ -190,41 +190,58 @@ header button {
   color: white;
 }
 
-.habit-table tbody tr:nth-child(9n+1) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+1) .habit-cell.completed {
   background-color: #4CB944;
 }
 
-.habit-table tbody tr:nth-child(9n+2) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+2) .habit-cell.completed {
   background-color: #3ABEA2;
 }
 
-.habit-table tbody tr:nth-child(9n+3) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+3) .habit-cell.completed {
   background-color: #28C2FF;
 }
 
-.habit-table tbody tr:nth-child(9n+4) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+4) .habit-cell.completed {
   background-color: #4386F1;
 }
 
-.habit-table tbody tr:nth-child(9n+5) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+5) .habit-cell.completed {
   background-color: #5E4AE3;
 }
 
-.habit-table tbody tr:nth-child(9n+6) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+6) .habit-cell.completed {
   background-color: #A44EE1;
 }
 
-.habit-table tbody tr:nth-child(9n+7) .habit-cell.completed {
-  background-color: #E952DE;
-}
-
-.habit-table tbody tr:nth-child(9n+8) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+7) .habit-cell.completed {
   background-color: #D2377E;
 }
 
-.habit-table tbody tr:nth-child(9n) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+8) .habit-cell.completed {
+  background-color: #BA1B1D;
+}
+
+.habit-table tbody tr:nth-child(13n+9) .habit-cell.completed {
   background-color: #D95D4B;
 }
+
+.habit-table tbody tr:nth-child(13n+10) .habit-cell.completed {
+  background-color: #F79F79;
+}
+
+.habit-table tbody tr:nth-child(13n+11) .habit-cell.completed {
+  background-color: #F7D08A;
+}
+
+.habit-table tbody tr:nth-child(13n+12) .habit-cell.completed {
+  background-color: #BEC873;
+}
+
+.habit-table tbody tr:nth-child(13n) .habit-cell.completed {
+  background-color: #85C15B;
+}
+
 .habit-cell.today {
   border: 2px solid #2196F3;
 }
@@ -411,7 +428,7 @@ th.today-column {
   opacity: 1;
 }
 
-.edit-note-btn, .delete-note-btn {
+.edit-note-btn, .delete-note-btn, .sticky-note-btn {
   background: none;
   border: none;
   cursor: pointer;
