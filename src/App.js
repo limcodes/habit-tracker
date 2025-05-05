@@ -344,27 +344,10 @@ function App() {
                 placeholder="Enter a new habit"
               />
               <button onClick={addHabit}>Add Habit</button>
-            </div>              
-          </div>
-          <div className="notes-section">
-            <div className="notes-input">
-              <input
-                type="date"
-                value={selectedNoteDate}
-                onChange={(e) => setSelectedNoteDate(e.target.value)}
-              />
-              <textarea
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                placeholder="Write your daily log here..."
-                rows="3"
-              />
-              <button onClick={addNote}>Add Log</button>
-            </div>
-
-            <div className="notes-list">
-              {/* Sticky Notes */}
-              {notes.filter(note => note.isSticky).map((note) => (
+            </div>    
+            <div className="sticky-notes-section">
+               {/* Sticky Notes */}
+               {notes.filter(note => note.isSticky).map((note) => (
                 <div key={note.id} className="note-item sticky-note">
                   {editingNoteId === note.id ? (
                     <div className="note-edit">
@@ -406,8 +389,26 @@ function App() {
                     </>
                   )}
                 </div>
-              ))}
+              ))}     
+            </div>
+          </div>
+          <div className="notes-section">
+            <div className="notes-input">
+              <input
+                type="date"
+                value={selectedNoteDate}
+                onChange={(e) => setSelectedNoteDate(e.target.value)}
+              />
+              <textarea
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                placeholder="Write your daily log here..."
+                rows="3"
+              />
+              <button onClick={addNote}>Add Log</button>
+            </div>
 
+            <div className="notes-list">
               {/* Regular Notes */}
               {notes.filter(note => !note.isSticky).map((note) => (
                 <div key={note.id} className="note-item regular-note">

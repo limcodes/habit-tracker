@@ -30,7 +30,7 @@
   .habit-table {
     width: 100%;
     overflow-x: auto;
-    display: block;
+    margin-bottom: 20px;
   }
 
   .habit-table table {
@@ -134,10 +134,10 @@ header button {
   justify-content: center;
   gap: 20px;
 }
+
 .habit-table {
   border-collapse: collapse;
-  width: auto;
-  margin: 0 auto;
+  width: 100%;
   background-color: rgba(255,255,255,0.8);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
@@ -320,6 +320,7 @@ th.today-column {
 @media (max-width: 600px) {
   .habit-table {
     font-size: 0.8em;
+    width: auto;
   }
   
   .habit-table th, .habit-table td {
@@ -328,7 +329,7 @@ th.today-column {
 
 }
 
-.notes-section {
+.notes-section, .sticky-notes-section {
   max-width: 540px;
 }
 
