@@ -206,7 +206,7 @@ function App() {
           isSticky: false
         };
         const docRef = await addDoc(userNotesRef, newNoteData);
-        setNotes([...notes, { id: docRef.id, ...newNoteData }]);
+        setNotes([{ id: docRef.id, ...newNoteData }, ...notes]);
         setNewNote('');
       } catch (error) {
         console.error('Error adding note:', error);
