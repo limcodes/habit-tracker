@@ -246,6 +246,12 @@ header button {
   border: 2px solid #2196F3;
 }
 
+.streak-cell {
+  font-weight: bold;
+  background-color: rgba(33, 150, 243, 0.1);
+  color: #2196F3;
+}
+
 .delete-habit-btn {
   background: none;
   border: none;

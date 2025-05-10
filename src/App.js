@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { format, eachDayOfInterval, isToday } from 'date-fns';
+import { format, eachDayOfInterval, isToday, parseISO, differenceInDays } from 'date-fns';
 import { addDoc, collection, query, getDocs, orderBy, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db, signInWithGoogle, signOutUser, saveHabitsToFirestore, fetchHabitsFromFirestore } from './firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -194,6 +194,52 @@ function App() {
     setEditNoteText('');
   };
 
+  const calculateStreak = (completedDays) => {
+    if (!completedDays || completedDays.length === 0) return 0;
+    
+    // Sort completed days in descending order
+    const sortedDays = completedDays.sort((a, b) => new Date(b) - new Date(a));
+    
+    // Get today and yesterday's dates
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const dayBeforeYesterday = new Date(today);
+    dayBeforeYesterday.setDate(today.getDate() - 2);
+    
+    const todayString = format(today, 'yyyy-MM-dd');
+    const yesterdayString = format(yesterday, 'yyyy-MM-dd');
+    const dayBeforeYesterdayString = format(dayBeforeYesterday, 'yyyy-MM-dd');
+    
+    // Check if the habit was completed yesterday or the day before yesterday
+    const wasCompletedYesterday = completedDays.includes(yesterdayString);
+    const wasCompletedDayBeforeYesterday = completedDays.includes(dayBeforeYesterdayString);
+    
+    // If not completed in the last two days, reset streak
+    if (!wasCompletedYesterday && !wasCompletedDayBeforeYesterday) {
+      return 0;
+    }
+    
+    let currentStreak = 0;
+    let lastDate = parseISO(sortedDays[0]);
+    
+    // Start from the most recent day
+    for (let i = 0; i < sortedDays.length; i++) {
+      const currentDate = parseISO(sortedDays[i]);
+      
+      // If this is the first iteration or the date is exactly one day before the last date
+      if (i === 0 || differenceInDays(lastDate, currentDate) === 1) {
+        currentStreak++;
+        lastDate = currentDate;
+      } else {
+        // Streak is broken
+        break;
+      }
+    }
+    
+    return currentStreak;
+  };
+
   const addNote = async () => {
     if (!user) return;
     if (newNote.trim()) {
@@ -318,17 +364,18 @@ function App() {
                         </div>
                       )}
                     </td>
-                    {monthDays.map(day => {
+                    {monthDays.map((day, index) => {
                       const dateString = format(day, 'yyyy-MM-dd');
                       const isCompleted = habit.completedDays.includes(dateString);
                       const isCurrentDay = isToday(day);
+                      const isLastColumn = index === monthDays.length - 1;
                       return (
                         <td
                           key={dateString}
-                          className={`habit-cell date-cell ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today-column' : ''}`}
+                          className={`habit-cell date-cell ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today-column' : ''} ${isLastColumn ? 'streak-cell' : ''}`}
                           onClick={() => toggleHabitCompletion(habit.id, dateString)}
                         >
-                          {isCompleted ? ' ' : ''}
+                          {isLastColumn ? calculateStreak(habit.completedDays) : (isCompleted ? ' ' : '')}
                         </td>
                       );
                     })}
