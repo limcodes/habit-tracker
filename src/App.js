@@ -211,9 +211,15 @@ function App() {
     const yesterdayString = format(yesterday, 'yyyy-MM-dd');
     const dayBeforeYesterdayString = format(dayBeforeYesterday, 'yyyy-MM-dd');
     
-    // Check if the habit was completed yesterday or the day before yesterday
+    // Check if the habit was completed today, yesterday, or the day before yesterday
+    const wasCompletedToday = completedDays.includes(todayString);
     const wasCompletedYesterday = completedDays.includes(yesterdayString);
     const wasCompletedDayBeforeYesterday = completedDays.includes(dayBeforeYesterdayString);
+    
+    // If completed today but not in previous two days, return 1
+    if (wasCompletedToday && !wasCompletedYesterday && !wasCompletedDayBeforeYesterday) {
+      return 1;
+    }
     
     // If not completed in the last two days, reset streak
     if (!wasCompletedYesterday && !wasCompletedDayBeforeYesterday) {
