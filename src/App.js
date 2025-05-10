@@ -316,18 +316,21 @@ function App() {
               <thead>
                 <tr>
                   <th>Habit</th>
-                  {monthDays.map(day => {
+                  {monthDays.map((day, index) => {
                     const dateString = format(day, 'yyyy-MM-dd');
                     const isCurrentDay = isToday(day);
+                    const isLastColumn = index === monthDays.length - 1;
                     return (
                       <th 
                         key={dateString} 
-                        className={`date-cell ${isCurrentDay ? 'today-column' : ''}`}
+                        className={`date-cell ${isCurrentDay ? 'today-column' : ''} ${isLastColumn ? 'streak-column' : ''}`}
                       >
-                        <div className="day-header">
-                          <span className="day-of-week">{format(day, 'EEE')}</span>
-                          <span className="day-of-month">{format(day, 'd')}</span>
-                        </div>
+                        {!isLastColumn ? (
+                          <div className="day-header">
+                            <span className="day-of-week">{format(day, 'EEE')}</span>
+                            <span className="day-of-month">{format(day, 'd')}</span>
+                          </div>
+                        ) : null}
                       </th>
                     );
                   })}
@@ -372,8 +375,8 @@ function App() {
                       return (
                         <td
                           key={dateString}
-                          className={`habit-cell date-cell ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today-column' : ''} ${isLastColumn ? 'streak-cell' : ''}`}
-                          onClick={() => toggleHabitCompletion(habit.id, dateString)}
+                          className={`habit-cell date-cell ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today-column' : ''} ${isLastColumn ? 'streak-column' : ''}`}
+                          onClick={isLastColumn ? undefined : () => toggleHabitCompletion(habit.id, dateString)}
                         >
                           {isLastColumn ? calculateStreak(habit.completedDays) : (isCompleted ? ' ' : '')}
                         </td>
