@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { format, eachDayOfInterval, isToday, parseISO, differenceInDays, startOfWeek, addDays, subDays } from 'date-fns';
+import { format, eachDayOfInterval, isToday, parseISO, differenceInDays, startOfWeek, addDays, subDays, isBefore, startOfDay } from 'date-fns';
 import { addDoc, collection, query, getDocs, orderBy, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db, signInWithGoogle, signOutUser, saveHabitsToFirestore, fetchHabitsFromFirestore } from './firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -25,7 +25,12 @@ function App() {
   };
 
   const goToNextWeek = () => {
-    setCurrentPeriodEndDate(addDays(currentPeriodEndDate, 7));
+    const potentialNextEndDate = addDays(currentPeriodEndDate, 7);
+    if (isBefore(today, potentialNextEndDate)) {
+      setCurrentPeriodEndDate(today);
+    } else {
+      setCurrentPeriodEndDate(potentialNextEndDate);
+    }
   };
 
   // Fetch habits when user changes
@@ -398,7 +403,9 @@ function App() {
             </table>
             <div className="week-navigation">
               <button onClick={goToPreviousWeek}>&larr; Previous Week</button>
-              <button onClick={goToNextWeek}>Next Week &rarr;</button>
+              {isBefore(startOfDay(currentPeriodEndDate), startOfDay(today)) && (
+                <button onClick={goToNextWeek}>Next Week &rarr;</button>
+              )}
             </div>
             <div className="habit-input">
               <input
