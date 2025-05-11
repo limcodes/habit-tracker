@@ -173,72 +173,76 @@ header button {
   font-weight: bold;
 }
 
-.habit-table .date-cell {
+.habit-table .habit-day {
   width: 25px;
   min-width: 25px;
   max-width: 25px;
   padding: 4px;
 }
 
-.habit-cell {
+.habit-day {
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
-.habit-cell.completed {
+.habit-day.completed {
   font-weight: bold;
   color: white;
 }
 
-.habit-table tbody tr:nth-child(13n+1) .habit-cell.completed {
+.habit-streak {
+  cursor: default;
+}
+
+.habit-table tbody tr:nth-child(13n+1) .habit-day.completed {
   background-color: #4CB944;
 }
 
-.habit-table tbody tr:nth-child(13n+2) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+2) .habit-day.completed {
   background-color: #3ABEA2;
 }
 
-.habit-table tbody tr:nth-child(13n+3) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+3) .habit-day.completed {
   background-color: #28C2FF;
 }
 
-.habit-table tbody tr:nth-child(13n+4) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+4) .habit-day.completed {
   background-color: #4386F1;
 }
 
-.habit-table tbody tr:nth-child(13n+5) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+5) .habit-day.completed {
   background-color: #5E4AE3;
 }
 
-.habit-table tbody tr:nth-child(13n+6) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+6) .habit-day.completed {
   background-color: #A44EE1;
 }
 
-.habit-table tbody tr:nth-child(13n+7) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+7) .habit-day.completed {
   background-color: #D2377E;
 }
 
-.habit-table tbody tr:nth-child(13n+8) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+8) .habit-day.completed {
   background-color: #BA1B1D;
 }
 
-.habit-table tbody tr:nth-child(13n+9) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+9) .habit-day.completed {
   background-color: #D95D4B;
 }
 
-.habit-table tbody tr:nth-child(13n+10) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+10) .habit-day.completed {
   background-color: #F79F79;
 }
 
-.habit-table tbody tr:nth-child(13n+11) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+11) .habit-day.completed {
   background-color: #F7D08A;
 }
 
-.habit-table tbody tr:nth-child(13n+12) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n+12) .habit-day.completed {
   background-color: #BEC873;
 }
 
-.habit-table tbody tr:nth-child(13n) .habit-cell.completed {
+.habit-table tbody tr:nth-child(13n) .habit-day.completed {
   background-color: #85C15B;
 }
 
