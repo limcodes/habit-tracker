@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { format, eachDayOfInterval, isToday, parseISO, differenceInDays } from 'date-fns';
+import { format, eachDayOfInterval, isToday, parseISO, differenceInDays, startOfWeek, addDays, subDays } from 'date-fns';
 import { addDoc, collection, query, getDocs, orderBy, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db, signInWithGoogle, signOutUser, saveHabitsToFirestore, fetchHabitsFromFirestore } from './firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -7,6 +7,7 @@ import './App.css';
 
 function App() {
   const today = new Date();
+  const [currentPeriodEndDate, setCurrentPeriodEndDate] = useState(today);
   const [user] = useAuthState(auth);
   const [habits, setHabits] = useState([]);
   const [newHabitName, setNewHabitName] = useState('');
@@ -18,6 +19,14 @@ function App() {
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editNoteText, setEditNoteText] = useState('');
   const [stickyNoteId, setStickyNoteId] = useState(null);
+
+  const goToPreviousWeek = () => {
+    setCurrentPeriodEndDate(subDays(currentPeriodEndDate, 7));
+  };
+
+  const goToNextWeek = () => {
+    setCurrentPeriodEndDate(addDays(currentPeriodEndDate, 7));
+  };
 
   // Fetch habits when user changes
   useEffect(() => {
@@ -296,10 +305,7 @@ function App() {
   };
 
   // Generate days (past 5 and future 5)
-  const monthDays = eachDayOfInterval({
-    start: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7),
-    end: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
-  });
+  const displayedDays = eachDayOfInterval({ start: subDays(currentPeriodEndDate, 5), end: currentPeriodEndDate });
 
   return (
     <div className="App">
@@ -322,25 +328,21 @@ function App() {
               <thead>
                 <tr>
                   <th>Habit</th>
-                  {monthDays.map((day, index) => {
-                    const dateString = format(day, 'yyyy-MM-dd');
-                    const isCurrentDay = isToday(day);
-                    const isLastColumn = index === monthDays.length - 1;
-                    return (
-                      <th 
-                        key={dateString} 
-                        className={`date-cell ${isCurrentDay ? 'today-column' : ''} ${isLastColumn ? 'streak-column' : ''}`}
-                      >
-                        {!isLastColumn ? (
-                          <div className="day-header">
-                            <span className="day-of-week">{format(day, 'EEE')}</span>
-                            <span className="day-of-month">{format(day, 'd')}</span>
-                          </div>
-                        ) : null}
-                      </th>
-                    );
-                  })}
-                </tr>
+                  {displayedDays.map((day, index) => {
+                     const dateString = format(day, 'yyyy-MM-dd');
+                     const isCurrentDay = isToday(day);
+                     return (
+                       <th 
+                         key={dateString} 
+                         className={`date-header ${isCurrentDay ? 'today' : ''}`}>
+                         {format(day, 'EEE')} 
+                         <br />
+                         {format(day, 'd')} 
+                       </th>
+                     );
+                   })}
+                   <th className="date-header last-column">Streak</th>
+                 </tr>
               </thead>
               <tbody>
                 {habits.map(habit => (
@@ -373,25 +375,29 @@ function App() {
                         </div>
                       )}
                     </td>
-                    {monthDays.map((day, index) => {
-                      const dateString = format(day, 'yyyy-MM-dd');
-                      const isCompleted = habit.completedDays.includes(dateString);
-                      const isCurrentDay = isToday(day);
-                      const isLastColumn = index === monthDays.length - 1;
-                      return (
-                        <td
-                          key={dateString}
-                          className={`habit-cell date-cell ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today-column' : ''} ${isLastColumn ? 'streak-column' : ''}`}
-                          onClick={isLastColumn ? undefined : () => toggleHabitCompletion(habit.id, dateString)}
-                        >
-                          {isLastColumn ? calculateStreak(habit.completedDays) : (isCompleted ? ' ' : '')}
-                        </td>
-                      );
-                    })}
-                  </tr>
+                    {displayedDays.map((day, index) => {
+                       const dateString = format(day, 'yyyy-MM-dd');
+                       const isCompleted = habit.completedDays.includes(dateString);
+                       const isCurrentDay = isToday(day);
+                       return (
+                         <td
+                           key={dateString}
+                           className={`habit-day ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today' : ''}`}
+                           onClick={() => toggleHabitCompletion(habit.id, dateString)}
+                         >
+                           {isCompleted ? '✓' : ''}
+                         </td>
+                       );
+                     })}
+                     <td className="habit-day habit-streak last-column">{calculateStreak(habit.completedDays)}</td>
+                   </tr>
                 ))}
               </tbody>
             </table>
+            <div className="week-navigation">
+              <button onClick={goToPreviousWeek}>&larr; Previous Week</button>
+              <button onClick={goToNextWeek}>Next Week &rarr;</button>
+            </div>
             <div className="habit-input">
               <input
                 type="text"
