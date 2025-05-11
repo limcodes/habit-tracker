@@ -335,13 +335,15 @@ function App() {
                        <th 
                          key={dateString} 
                          className={`date-header ${isCurrentDay ? 'today' : ''}`}>
-                         {format(day, 'EEE')} 
-                         <br />
-                         {format(day, 'd')} 
+                         <div className="day-header">
+                          <span className="day-of-week">{format(day, 'EEE')}</span>
+                          <br />
+                          <span className="day-of-month">{format(day, 'd')}</span>
+                         </div>
                        </th>
                      );
                    })}
-                   <th className="date-header last-column">Streak</th>
+                   <th className="date-header last-column"></th>
                  </tr>
               </thead>
               <tbody>
@@ -385,7 +387,7 @@ function App() {
                            className={`habit-day ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today' : ''}`}
                            onClick={() => toggleHabitCompletion(habit.id, dateString)}
                          >
-                           {isCompleted ? '✓' : ''}
+                           {isCompleted ? ' ' : ''}
                          </td>
                        );
                      })}

@@ -155,13 +155,6 @@ header button {
   font-weight: bold;
 }
 
-.day-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1.4;
-}
-
 .day-of-week {
   font-size: 0.7em;
   color: #666;
@@ -170,6 +163,18 @@ header button {
 
 .day-of-month {
   font-size: 1em;
+  font-weight: bold;
+}
+
+.habit-table .date-header {
+  padding: 4px;
+  min-width: 25px;
+  max-width: 25px;  
+}
+
+.date-header.today {
+  background: #000;
+  color: #FFF; /* Light yellow for today's header */
   font-weight: bold;
 }
 
@@ -183,6 +188,11 @@ header button {
 .habit-day {
   cursor: pointer;
   transition: background-color 0.3s;
+}
+
+.habit-day.today {
+  background-color: #EAF2FB; /* Light yellow for today's data cells */
+  /* border: 1px solid #f0e68c; */ /* Optional border */
 }
 
 .habit-day.completed {
@@ -247,7 +257,7 @@ header button {
 }
 
 .habit-cell.today {
-  border: 2px solid #2196F3;
+  background-color: #2196F3;
 }
 
 .streak-column {
