@@ -305,7 +305,7 @@ function App() {
   };
 
   // Generate days (past 5 and future 5)
-  const displayedDays = eachDayOfInterval({ start: subDays(currentPeriodEndDate, 5), end: currentPeriodEndDate });
+  const displayedDays = eachDayOfInterval({ start: subDays(currentPeriodEndDate, 6), end: currentPeriodEndDate });
 
   return (
     <div className="App">
