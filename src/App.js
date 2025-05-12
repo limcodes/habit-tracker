@@ -401,21 +401,24 @@ function App() {
                 ))}
               </tbody>
             </table>
-            <div className="week-navigation">
-              <button onClick={goToPreviousWeek}>&larr; Previous Week</button>
-              {isBefore(startOfDay(currentPeriodEndDate), startOfDay(today)) && (
-                <button onClick={goToNextWeek}>Next Week &rarr;</button>
-              )}
+            <div class="input-and-nav">
+              <div className="week-navigation">
+                <button className="week-nav-btn" onClick={goToPreviousWeek}>&lsaquo;</button>
+                {isBefore(startOfDay(currentPeriodEndDate), startOfDay(today)) && (
+                  <button className="week-nav-btn" onClick={goToNextWeek}>&rsaquo;</button>
+                )}
+              </div>              
+              <div className="habit-input">
+                <input
+                  type="text"
+                  value={newHabitName}
+                  onChange={(e) => setNewHabitName(e.target.value)}
+                  placeholder="Enter a new habit"
+                />
+                <button onClick={addHabit}>Add Habit</button>
+              </div>
+                        
             </div>
-            <div className="habit-input">
-              <input
-                type="text"
-                value={newHabitName}
-                onChange={(e) => setNewHabitName(e.target.value)}
-                placeholder="Enter a new habit"
-              />
-              <button onClick={addHabit}>Add Habit</button>
-            </div>    
             <div className="sticky-notes-section">
                {/* Sticky Notes */}
                {notes.filter(note => note.isSticky).map((note) => (

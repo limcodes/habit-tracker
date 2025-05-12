@@ -449,7 +449,21 @@ th.today-column {
   opacity: 1;
 }
 
-.edit-note-btn, .delete-note-btn, .sticky-note-btn {
+.input-and-nav {
+  display: flex;
+  justify-content: space-between;
+}
+
+.week-navigation {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+}
+
+
+
+.edit-note-btn, .delete-note-btn, .sticky-note-btn, .week-nav-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -458,6 +472,13 @@ th.today-column {
   border-radius: 4px;
   transition: background-color 0.3s;
 }
+
+.week-nav-btn {
+  font-size: 1.5em;
+  color: #999;
+  padding-top: 0;
+}
+
 
 .edit-note-btn {
   color: #2196F3;
