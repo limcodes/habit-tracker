@@ -5,6 +5,16 @@ import { auth, db, signInWithGoogle, signOutUser, saveHabitsToFirestore, fetchHa
 import { useAuthState } from 'react-firebase-hooks/auth';
 import './App.css';
 
+// Import components
+import HabitsTable from './components/HabitsTable';
+import AddNewHabit from './components/AddNewHabit';
+import AddNotes from './components/AddNotes';
+import RegularNotes from './components/RegularNotes';
+import StickyNotes from './components/StickyNotes';
+
+// Import utilities
+import { parseNoteText } from './utils/textFormatter';
+
 function App() {
   const today = new Date();
   const [currentPeriodEndDate, setCurrentPeriodEndDate] = useState(today);
@@ -329,205 +339,69 @@ function App() {
       {user && (
         <div className="habit-container">
           <div className="habit-list">
-            <table className="habit-table">
-              <thead>
-                <tr>
-                  <th>Habit</th>
-                  {displayedDays.map((day, index) => {
-                     const dateString = format(day, 'yyyy-MM-dd');
-                     const isCurrentDay = isToday(day);
-                     return (
-                       <th 
-                         key={dateString} 
-                         className={`date-header ${isCurrentDay ? 'today' : ''}`}>
-                         <div className="day-header">
-                          <span className="day-of-week">{format(day, 'EEE')}</span>
-                          <br />
-                          <span className="day-of-month">{format(day, 'd')}</span>
-                         </div>
-                       </th>
-                     );
-                   })}
-                   <th className="date-header last-column"></th>
-                 </tr>
-              </thead>
-              <tbody>
-                {habits.map(habit => (
-                  <tr key={habit.id}>
-                    <td>
-                      {editingHabitId === habit.id ? (
-                        <div className="habit-edit">
-                          <input
-                            type="text"
-                            value={editHabitName}
-                            onChange={(e) => setEditHabitName(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') saveEditHabit();
-                              if (e.key === 'Escape') cancelEditHabit();
-                            }}
-                            autoFocus
-                          />
-                          <div className="habit-edit-actions">
-                            <button onClick={saveEditHabit}>Save</button>
-                            <button onClick={cancelEditHabit}>Cancel</button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="habit-name">
-                          <span onClick={() => startEditHabit(habit)}>{habit.name}</span>
-                          <button 
-                            className="delete-habit-btn hover-delete" 
-                            onClick={() => deleteHabit(habit.id)}
-                          >✕</button>
-                        </div>
-                      )}
-                    </td>
-                    {displayedDays.map((day, index) => {
-                       const dateString = format(day, 'yyyy-MM-dd');
-                       const isCompleted = habit.completedDays.includes(dateString);
-                       const isCurrentDay = isToday(day);
-                       return (
-                         <td
-                           key={dateString}
-                           className={`habit-day ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today' : ''}`}
-                           onClick={() => toggleHabitCompletion(habit.id, dateString)}
-                         >
-                           {isCompleted ? ' ' : ''}
-                         </td>
-                       );
-                     })}
-                     <td className="habit-day habit-streak last-column">{calculateStreak(habit.completedDays)}</td>
-                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <div class="input-and-nav">
+            <HabitsTable 
+              habits={habits}
+              displayedDays={displayedDays}
+              toggleHabitCompletion={toggleHabitCompletion}
+              startEditHabit={startEditHabit}
+              deleteHabit={deleteHabit}
+              editingHabitId={editingHabitId}
+              editHabitName={editHabitName}
+              setEditHabitName={setEditHabitName}
+              saveEditHabit={saveEditHabit}
+              cancelEditHabit={cancelEditHabit}
+              calculateStreak={calculateStreak}
+            />
+            <div className="input-and-nav">
               <div className="week-navigation">
                 <button className="week-nav-btn" onClick={goToPreviousWeek}>&lsaquo;</button>
                 {isBefore(startOfDay(currentPeriodEndDate), startOfDay(today)) && (
                   <button className="week-nav-btn" onClick={goToNextWeek}>&rsaquo;</button>
                 )}
-              </div>              
-              <div className="habit-input">
-                <input
-                  type="text"
-                  value={newHabitName}
-                  onChange={(e) => setNewHabitName(e.target.value)}
-                  placeholder="Enter a new habit"
-                />
-                <button onClick={addHabit}>Add Habit</button>
               </div>
-                        
+              <AddNewHabit 
+                newHabitName={newHabitName}
+                setNewHabitName={setNewHabitName}
+                addHabit={addHabit}
+              />
             </div>
-            <div className="sticky-notes-section">
-               {/* Sticky Notes */}
-               {notes.filter(note => note.isSticky).map((note) => (
-                <div key={note.id} className="note-item sticky-note">
-                  {editingNoteId === note.id ? (
-                    <div className="note-edit">
-                      <input
-                        type="date"
-                        value={selectedNoteDate}
-                        onChange={(e) => setSelectedNoteDate(e.target.value)}
-                      />
-                      <textarea
-                        value={editNoteText}
-                        onChange={(e) => setEditNoteText(e.target.value)}
-                        rows="3"
-                      />
-                      <div className="note-edit-actions">
-                        <button onClick={saveEditNote}>Save</button>
-                        <button onClick={cancelEditNote}>Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="note-header">
-                        <span className="note-date">{note.date}</span>
-                        <div className="note-actions hover-actions">
-                          <button 
-                            className="edit-note-btn" 
-                            onClick={() => startEditNote(note)}
-                          >✎</button>
-                          <button 
-                            className="delete-note-btn" 
-                            onClick={() => deleteNote(note.id)}
-                          >✕</button>
-                          <button 
-                            className="sticky-note-btn" 
-                            onClick={() => toggleStickyNote(note.id)}
-                          >{note.isSticky ? '📌' : '📍'}</button>
-                        </div>
-                      </div>
-                      <p className="note-text">{note.text}</p>
-                    </>
-                  )}
-                </div>
-              ))}     
-            </div>
+            <StickyNotes 
+              notes={notes}
+              editingNoteId={editingNoteId}
+              selectedNoteDate={selectedNoteDate}
+              setSelectedNoteDate={setSelectedNoteDate}
+              editNoteText={editNoteText}
+              setEditNoteText={setEditNoteText}
+              saveEditNote={saveEditNote}
+              cancelEditNote={cancelEditNote}
+              startEditNote={startEditNote}
+              deleteNote={deleteNote}
+              toggleStickyNote={toggleStickyNote}
+              parseNoteText={parseNoteText}
+            />
           </div>
           <div className="notes-section">
-            <div className="notes-input">
-              <input
-                type="date"
-                value={selectedNoteDate}
-                onChange={(e) => setSelectedNoteDate(e.target.value)}
-              />
-              <textarea
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                placeholder="Write your daily log here..."
-                rows="3"
-              />
-              <button onClick={addNote}>Add Log</button>
-            </div>
-
-            <div className="notes-list">
-              {/* Regular Notes */}
-              {notes.filter(note => !note.isSticky).map((note) => (
-                <div key={note.id} className="note-item regular-note">
-                  {editingNoteId === note.id ? (
-                    <div className="note-edit">
-                      <input
-                        type="date"
-                        value={selectedNoteDate}
-                        onChange={(e) => setSelectedNoteDate(e.target.value)}
-                      />
-                      <textarea
-                        value={editNoteText}
-                        onChange={(e) => setEditNoteText(e.target.value)}
-                        rows="3"
-                      />
-                      <div className="note-edit-actions">
-                        <button onClick={saveEditNote}>Save</button>
-                        <button onClick={cancelEditNote}>Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="note-header">
-                        <span className="note-date">{note.date}</span>
-                        <div className="note-actions hover-actions">
-                          <button 
-                            className="edit-note-btn" 
-                            onClick={() => startEditNote(note)}
-                          >✎</button>
-                          <button 
-                            className="delete-note-btn" 
-                            onClick={() => deleteNote(note.id)}
-                          >✕</button>
-                          <button 
-                            className="sticky-note-btn" 
-                            onClick={() => toggleStickyNote(note.id)}
-                          >{note.isSticky ? '📌' : '📍'}</button>
-                        </div>
-                      </div>
-                      <p className="note-text">{note.text}</p>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
+            <AddNotes 
+              selectedNoteDate={selectedNoteDate}
+              setSelectedNoteDate={setSelectedNoteDate}
+              newNote={newNote}
+              setNewNote={setNewNote}
+              addNote={addNote}
+            />
+            <RegularNotes 
+              notes={notes}
+              editingNoteId={editingNoteId}
+              selectedNoteDate={selectedNoteDate}
+              setSelectedNoteDate={setSelectedNoteDate}
+              editNoteText={editNoteText}
+              setEditNoteText={setEditNoteText}
+              saveEditNote={saveEditNote}
+              cancelEditNote={cancelEditNote}
+              startEditNote={startEditNote}
+              deleteNote={deleteNote}
+              toggleStickyNote={toggleStickyNote}
+              parseNoteText={parseNoteText}
+            />
           </div>
         </div>
       )}
