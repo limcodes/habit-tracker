@@ -1,7 +1,9 @@
 import React from 'react';
+import { format } from 'date-fns';
 
 function RegularNotes({ 
   notes,
+  displayedDays,
   editingNoteId,
   selectedNoteDate,
   setSelectedNoteDate,
@@ -14,10 +16,21 @@ function RegularNotes({
   toggleStickyNote,
   parseNoteText
 }) {
+  // Filter notes to only show those within the displayed period
+  const filterNotesByPeriod = (notes) => {
+    if (!displayedDays || displayedDays.length === 0) return notes.filter(note => !note.isSticky);
+    
+    const periodDateStrings = displayedDays.map(day => format(day, 'yyyy-MM-dd'));
+    
+    return notes.filter(note => 
+      !note.isSticky && periodDateStrings.includes(note.date)
+    );
+  };
+
   return (
     <div className="notes-list">
       {/* Regular Notes */}
-      {notes.filter(note => !note.isSticky).map((note) => (
+      {filterNotesByPeriod(notes).map((note) => (
         <div key={note.id} className="note-item regular-note">
           {editingNoteId === note.id ? (
             <div className="note-edit">

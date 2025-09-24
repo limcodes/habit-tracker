@@ -390,6 +390,7 @@ function App() {
             />
             <RegularNotes 
               notes={notes}
+              displayedDays={displayedDays}
               editingNoteId={editingNoteId}
               selectedNoteDate={selectedNoteDate}
               setSelectedNoteDate={setSelectedNoteDate}
