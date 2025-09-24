@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 
 function RegularNotes({ 
@@ -16,6 +16,24 @@ function RegularNotes({
   toggleStickyNote,
   parseNoteText
 }) {
+  const textareaRef = useRef(null);
+
+  // Auto-resize textarea to match content
+  const autoResizeTextarea = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${Math.max(textarea.scrollHeight, 20)}px`;
+    }
+  };
+
+  // Auto-resize when editing starts or content changes
+  useEffect(() => {
+    if (editingNoteId && textareaRef.current) {
+      autoResizeTextarea();
+    }
+  }, [editingNoteId, editNoteText]);
+
   // Filter notes to only show those within the displayed period
   const filterNotesByPeriod = (notes) => {
     if (!displayedDays || displayedDays.length === 0) return notes.filter(note => !note.isSticky);
@@ -34,20 +52,29 @@ function RegularNotes({
         <div key={note.id} className="note-item regular-note">
           {editingNoteId === note.id ? (
             <div className="note-edit">
-              <input
-                type="date"
-                value={selectedNoteDate}
-                onChange={(e) => setSelectedNoteDate(e.target.value)}
-              />
-              <textarea
-                value={editNoteText}
-                onChange={(e) => setEditNoteText(e.target.value)}
-                rows="3"
-              />
-              <div className="note-edit-actions">
-                <button onClick={saveEditNote}>Save</button>
-                <button onClick={cancelEditNote}>Cancel</button>
+              <div className="note-header">
+                <input
+                  type="date"
+                  className="note-date-edit"
+                  value={selectedNoteDate}
+                  readOnly
+                />
+                <div className="note-edit-actions">
+                  <button onClick={saveEditNote}>Save</button>
+                  <button onClick={cancelEditNote}>Cancel</button>
+                </div>
               </div>
+              <textarea
+                ref={textareaRef}
+                className="note-text-edit"
+                value={editNoteText}
+                onChange={(e) => {
+                  setEditNoteText(e.target.value);
+                  autoResizeTextarea();
+                }}
+                rows="1"
+                autoFocus
+              />
             </div>
           ) : (
             <>
@@ -70,6 +97,7 @@ function RegularNotes({
               </div>
               <p 
                 className="note-text"
+                onDoubleClick={() => startEditNote(note)}
                 dangerouslySetInnerHTML={{ __html: parseNoteText(note.text) }}
               ></p>
             </>
