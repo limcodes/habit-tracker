@@ -461,16 +461,14 @@ th.today-column {
   align-items: center;
   margin-bottom: 5px;
   position: relative;
-  padding-right: 50px;
 }
 
 .note-actions {
   position: absolute;
-  right: -5px;
   display: flex;
   align-items: center;
-  gap: 5px;
   opacity: 0;
+  right: 0;
   transition: opacity 0.3s;
 }
 
@@ -523,33 +521,38 @@ th.today-column {
   gap: 10px;
 }
 
-.note-edit input[type="date"], 
-.note-edit textarea {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
+
 
 .note-edit-actions {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 5px;
 }
 
-.note-edit-actions button {
-  padding: 8px 12px;
+.save-note-btn, .cancel-note-btn {
+  background: none;
   border: none;
-  border-radius: 4px;
   cursor: pointer;
+  font-size: 0.9em;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
 }
 
-.note-edit-actions button:first-child {
-  background-color: #4CAF50;
-  color: white;
+.save-note-btn {
+  color: #4CAF50;
 }
 
-.note-edit-actions button:last-child {
-  background-color: #f44336;
-  color: white;
+.save-note-btn:hover {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.cancel-note-btn {
+  color: #f44336;
+}
+
+.cancel-note-btn:hover {
+  background-color: rgba(244, 67, 54, 0.1);
 }
 
 .habit-input input {
@@ -577,28 +580,5 @@ th.today-column {
 }
 
 .note-text-edit:focus {
-  background-color: rgba(33, 150, 243, 0.02);
-}
-
-.note-date-edit {
-  border: none;
-  background: transparent;
-  color: #666;
-  font-size: 0.8em;
-  font-family: inherit;
-  outline: none;
-  padding: 2px 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-  cursor: default;
-}
-
-.note-date-edit:read-only {
-  background-color: rgba(0, 0, 0, 0.02);
-  color: #888;
-  cursor: not-allowed;
-}
-
-.note-date-edit:focus {
   background-color: rgba(33, 150, 243, 0.02);
 }

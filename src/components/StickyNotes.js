@@ -40,15 +40,18 @@ function StickyNotes({
           {editingNoteId === note.id ? (
             <div className="note-edit">
               <div className="note-header">
-                <input
-                  type="date"
-                  className="note-date-edit"
-                  value={selectedNoteDate}
-                  readOnly
-                />
+                <span className="note-date">{note.date}</span>
                 <div className="note-edit-actions">
-                  <button onClick={saveEditNote}>Save</button>
-                  <button onClick={cancelEditNote}>Cancel</button>
+                  <button 
+                    className="save-note-btn" 
+                    onClick={saveEditNote}
+                    title="Save"
+                  >✓</button>
+                  <button 
+                    className="cancel-note-btn" 
+                    onClick={cancelEditNote}
+                    title="Cancel"
+                  >✕</button>
                 </div>
               </div>
               <textarea
@@ -69,13 +72,13 @@ function StickyNotes({
                 <span className="note-date">{note.date}</span>
                 <div className="note-actions hover-actions">
                   <button 
-                    className="edit-note-btn" 
-                    onClick={() => startEditNote(note)}
-                  >✎</button>
-                  <button 
                     className="delete-note-btn" 
-                    onClick={() => deleteNote(note.id)}
-                  >✕</button>
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+                        deleteNote(note.id);
+                      }
+                    }}
+                  >🗑️</button>
                   <button 
                     className="sticky-note-btn" 
                     onClick={() => toggleStickyNote(note.id)}
