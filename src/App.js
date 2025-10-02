@@ -343,8 +343,8 @@ function App() {
     await signOutUser();
   };
 
-  // Generate days (past 5 and future 5)
-  const displayedDays = eachDayOfInterval({ start: subDays(currentPeriodEndDate, 6), end: currentPeriodEndDate });
+  // Generate days (1 future day + today + last 5 days = 7 days total)
+  const displayedDays = eachDayOfInterval({ start: subDays(currentPeriodEndDate, 5), end: addDays(currentPeriodEndDate, 1) });
 
   return (
     <div className="App">
