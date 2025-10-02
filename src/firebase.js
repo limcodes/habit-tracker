@@ -101,7 +101,8 @@ export const saveHabitsToFirestore = async (userId, habits) => {
       batch.set(habitDocRef, {
         id: habit.id,
         name: habit.name,
-        completedDays: habit.completedDays || []
+        completedDays: habit.completedDays || [],
+        order: habit.order !== undefined ? habit.order : 0
       });
     });
 
@@ -134,8 +135,12 @@ export const fetchHabitsFromFirestore = async (userId) => {
     const habits = habitsSnapshot.docs.map(doc => ({
       id: doc.data().id || doc.id,
       name: doc.data().name,
-      completedDays: doc.data().completedDays || []
+      completedDays: doc.data().completedDays || [],
+      order: doc.data().order !== undefined ? doc.data().order : 999
     }));
+
+    // Sort by order field
+    habits.sort((a, b) => a.order - b.order);
 
     return habits;
   } catch (error) {

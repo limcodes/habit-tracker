@@ -109,7 +109,8 @@ function App() {
       const newHabit = {
         id: `habit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: newHabitName,
-        completedDays: []
+        completedDays: [],
+        order: habits.length // Add order field
       };
       setHabits([...habits, newHabit]);
       setNewHabitName('');
@@ -137,7 +138,12 @@ function App() {
 
   const reorderHabits = (newHabits) => {
     if (!user) return;
-    setHabits(newHabits);
+    // Update order field for each habit
+    const habitsWithOrder = newHabits.map((habit, index) => ({
+      ...habit,
+      order: index
+    }));
+    setHabits(habitsWithOrder);
   };
 
   const startEditHabit = (habit) => {
