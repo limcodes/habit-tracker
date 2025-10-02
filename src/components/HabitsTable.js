@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { format, isToday } from 'date-fns';
 
 function HabitsTable({ 
@@ -12,8 +12,55 @@ function HabitsTable({
   setEditHabitName,
   saveEditHabit,
   cancelEditHabit,
-  calculateStreak
+  calculateStreak,
+  reorderHabits
 }) {
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (index !== draggedIndex) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const newHabits = [...habits];
+    const draggedHabit = newHabits[draggedIndex];
+    
+    // Remove from old position
+    newHabits.splice(draggedIndex, 1);
+    // Insert at new position
+    newHabits.splice(dropIndex, 0, draggedHabit);
+    
+    reorderHabits(newHabits);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
   return (
     <table className="habit-table">
       <thead>
@@ -38,8 +85,20 @@ function HabitsTable({
         </tr>
       </thead>
       <tbody>
-        {habits.map(habit => (
-          <tr key={habit.id}>
+        {habits.map((habit, index) => (
+          <tr 
+            key={habit.id}
+            draggable={editingHabitId !== habit.id}
+            onDragStart={(e) => handleDragStart(e, index)}
+            onDragOver={(e) => handleDragOver(e, index)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, index)}
+            onDragEnd={handleDragEnd}
+            className={`
+              ${draggedIndex === index ? 'dragging' : ''}
+              ${dragOverIndex === index ? 'drag-over' : ''}
+            `}
+          >
             <td>
               {editingHabitId === habit.id ? (
                 <div className="habit-edit">

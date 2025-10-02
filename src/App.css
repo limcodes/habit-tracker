@@ -595,3 +595,22 @@ th.today-column {
   color: #999;
   opacity: 0.7;
 }
+
+/* Drag and drop styles */
+.habit-table tbody tr {
+  cursor: move;
+  transition: all 0.2s ease;
+}
+
+.habit-table tbody tr.dragging {
+  opacity: 0.5;
+  background-color: #f0f0f0;
+}
+
+.habit-table tbody tr.drag-over {
+  border-top: 3px solid #2196F3;
+}
+
+.habit-table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}

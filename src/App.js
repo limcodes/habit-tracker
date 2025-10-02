@@ -135,6 +135,11 @@ function App() {
     setHabits(habits.filter(habit => habit.id !== habitId));
   };
 
+  const reorderHabits = (newHabits) => {
+    if (!user) return;
+    setHabits(newHabits);
+  };
+
   const startEditHabit = (habit) => {
     setEditingHabitId(habit.id);
     setEditHabitName(habit.name);
@@ -375,6 +380,7 @@ function App() {
               saveEditHabit={saveEditHabit}
               cancelEditHabit={cancelEditHabit}
               calculateStreak={calculateStreak}
+              reorderHabits={reorderHabits}
             />
             <div className="input-and-nav">
               <div className="week-navigation">
