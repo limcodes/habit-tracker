@@ -218,6 +218,30 @@ function App() {
     setEditNoteText('');
   };
 
+  const updateNoteCheckbox = async (noteId, updatedText) => {
+    if (!user) return;
+
+    try {
+      // Update note in Firestore
+      const userNotesRef = collection(db, 'users', user.uid, 'notes');
+      const noteDocRef = doc(userNotesRef, noteId);
+      
+      await updateDoc(noteDocRef, {
+        text: updatedText
+      });
+
+      // Update local state
+      const updatedNotes = notes.map(note => 
+        note.id === noteId 
+          ? { ...note, text: updatedText } 
+          : note
+      );
+      setNotes(updatedNotes);
+    } catch (error) {
+      console.error('Error updating checkbox:', error);
+    }
+  };
+
   const calculateStreak = (completedDays) => {
     if (!completedDays || completedDays.length === 0) return 0;
     
@@ -377,6 +401,7 @@ function App() {
               startEditNote={startEditNote}
               deleteNote={deleteNote}
               toggleStickyNote={toggleStickyNote}
+              updateNoteCheckbox={updateNoteCheckbox}
               parseNoteText={parseNoteText}
             />
           </div>
@@ -401,6 +426,7 @@ function App() {
               startEditNote={startEditNote}
               deleteNote={deleteNote}
               toggleStickyNote={toggleStickyNote}
+              updateNoteCheckbox={updateNoteCheckbox}
               parseNoteText={parseNoteText}
             />
           </div>

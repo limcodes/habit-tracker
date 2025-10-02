@@ -435,26 +435,6 @@ th.today-column {
   background-color: rgba(0, 0, 0, 0.02);
 }
 
-.note-text:hover::after {
-  content: "Double-click to edit";
-  position: absolute;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.7em;
-  margin-top: -30px;
-  margin-left: 10px;
-  white-space: nowrap;
-  z-index: 1000;
-  animation: fadeIn 0.3s ease-in;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 .note-header {
   display: flex;
   justify-content: space-between;
@@ -581,4 +561,37 @@ th.today-column {
 
 .note-text-edit:focus {
   background-color: rgba(33, 150, 243, 0.02);
+}
+
+.note-date-edit:focus {
+  background-color: rgba(33, 150, 243, 0.02);
+}
+
+/* Todo checkbox styles */
+.todo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 4px 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.todo-checkbox {
+  margin-top: 3px;
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.todo-text {
+  flex: 1;
+  transition: all 0.2s ease;
+}
+
+.todo-checked {
+  text-decoration: line-through;
+  color: #999;
+  opacity: 0.7;
 }
