@@ -102,6 +102,7 @@ export const saveHabitsToFirestore = async (userId, habits) => {
         id: habit.id,
         name: habit.name,
         completedDays: habit.completedDays || [],
+        skippedDays: habit.skippedDays || [],
         order: habit.order !== undefined ? habit.order : 0
       });
     });
@@ -136,6 +137,7 @@ export const fetchHabitsFromFirestore = async (userId) => {
       id: doc.data().id || doc.id,
       name: doc.data().name,
       completedDays: doc.data().completedDays || [],
+      skippedDays: doc.data().skippedDays || [],
       order: doc.data().order !== undefined ? doc.data().order : 999
     }));
 

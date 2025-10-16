@@ -110,6 +110,7 @@ function App() {
         id: `habit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: newHabitName,
         completedDays: [],
+        skippedDays: [], // Track X marks
         order: habits.length // Add order field
       };
       setHabits([...habits, newHabit]);
@@ -121,10 +122,46 @@ function App() {
     if (!user) return;
     const updatedHabits = habits.map(habit => {
       if (habit.id === habitId) {
-        const completedDays = habit.completedDays.includes(dateString)
+        const isCompleted = habit.completedDays.includes(dateString);
+        const isSkipped = habit.skippedDays?.includes(dateString);
+        
+        // Remove from skipped if it was skipped
+        const newSkippedDays = isSkipped 
+          ? habit.skippedDays.filter(day => day !== dateString)
+          : habit.skippedDays || [];
+        
+        return {
+          ...habit,
+          completedDays: isCompleted
+            ? habit.completedDays.filter(day => day !== dateString)
+            : [...habit.completedDays, dateString],
+          skippedDays: newSkippedDays
+        };
+      }
+      return habit;
+    });
+    setHabits(updatedHabits);
+  };
+
+  const toggleHabitSkip = (habitId, dateString) => {
+    if (!user) return;
+    const updatedHabits = habits.map(habit => {
+      if (habit.id === habitId) {
+        const isSkipped = habit.skippedDays?.includes(dateString);
+        const isCompleted = habit.completedDays.includes(dateString);
+        
+        // Remove from completed if it was completed
+        const newCompletedDays = isCompleted 
           ? habit.completedDays.filter(day => day !== dateString)
-          : [...habit.completedDays, dateString];
-        return { ...habit, completedDays };
+          : habit.completedDays;
+        
+        return {
+          ...habit,
+          completedDays: newCompletedDays,
+          skippedDays: isSkipped
+            ? (habit.skippedDays || []).filter(day => day !== dateString)
+            : [...(habit.skippedDays || []), dateString]
+        };
       }
       return habit;
     });
@@ -378,6 +415,7 @@ function App() {
               habits={habits}
               displayedDays={displayedDays}
               toggleHabitCompletion={toggleHabitCompletion}
+              toggleHabitSkip={toggleHabitSkip}
               startEditHabit={startEditHabit}
               deleteHabit={deleteHabit}
               editingHabitId={editingHabitId}

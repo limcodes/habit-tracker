@@ -4,7 +4,8 @@ import { format, isToday } from 'date-fns';
 function HabitsTable({ 
   habits, 
   displayedDays, 
-  toggleHabitCompletion, 
+  toggleHabitCompletion,
+  toggleHabitSkip,
   startEditHabit, 
   deleteHabit,
   editingHabitId,
@@ -130,14 +131,19 @@ function HabitsTable({
             {displayedDays.map((day, index) => {
               const dateString = format(day, 'yyyy-MM-dd');
               const isCompleted = habit.completedDays.includes(dateString);
+              const isSkipped = habit.skippedDays?.includes(dateString);
               const isCurrentDay = isToday(day);
               return (
                 <td
                   key={dateString}
-                  className={`habit-day ${isCompleted ? 'completed' : ''} ${isCurrentDay ? 'today' : ''}`}
+                  className={`habit-day ${isCompleted ? 'completed' : ''} ${isSkipped ? 'skipped' : ''} ${isCurrentDay ? 'today' : ''}`}
                   onClick={() => toggleHabitCompletion(habit.id, dateString)}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    toggleHabitSkip(habit.id, dateString);
+                  }}
                 >
-                  {isCompleted ? ' ' : ''}
+                  {isCompleted ? ' ' : isSkipped ? '✕' : ''}
                 </td>
               );
             })}
