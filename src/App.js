@@ -29,6 +29,7 @@ function App() {
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editNoteText, setEditNoteText] = useState('');
   const [stickyNoteId, setStickyNoteId] = useState(null);
+  const habitsLoaded = React.useRef(false);
 
   const goToPreviousWeek = () => {
     setCurrentPeriodEndDate(subDays(currentPeriodEndDate, 7));
@@ -47,10 +48,14 @@ function App() {
   useEffect(() => {
     const fetchHabits = async () => {
       if (user) {
+        console.log('Current user UID:', user.uid);
+        habitsLoaded.current = false;
         const fetchedHabits = await fetchHabitsFromFirestore(user.uid);
         setHabits(fetchedHabits);
+        habitsLoaded.current = true;
       } else {
         setHabits([]);
+        habitsLoaded.current = false;
       }
     };
     fetchHabits();
@@ -71,7 +76,7 @@ function App() {
     };
 
     // Debounce save to reduce unnecessary Firestore writes
-    if (user) {
+    if (user && habitsLoaded.current) {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(saveHabits, 500); // 500ms delay
     }
@@ -210,7 +215,6 @@ function App() {
   const startEditNote = (note) => {
     setEditingNoteId(note.id);
     setEditNoteText(note.text);
-    setSelectedNoteDate(note.date);
   };
 
   const saveEditNote = async () => {
@@ -222,15 +226,18 @@ function App() {
       const userNotesRef = collection(db, 'users', user.uid, 'notes');
       const noteDocRef = doc(userNotesRef, editingNoteId);
       
+      const originalNote = notes.find(n => n.id === editingNoteId);
+      const noteDate = originalNote ? originalNote.date : selectedNoteDate;
+
       await updateDoc(noteDocRef, {
         text: editNoteText.trim(),
-        date: selectedNoteDate
+        date: noteDate
       });
 
       // Update local state
       const updatedNotes = notes.map(note => 
         note.id === editingNoteId 
-          ? { ...note, text: editNoteText.trim(), date: selectedNoteDate } 
+          ? { ...note, text: editNoteText.trim(), date: noteDate } 
           : note
       );
       setNotes(updatedNotes);

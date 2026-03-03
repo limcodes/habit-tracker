@@ -15,12 +15,15 @@ function AddNotes({ selectedNoteDate, setSelectedNoteDate, newNote, setNewNote, 
 
   return (
     <div className={`notes-input ${isFullscreen ? 'fullscreen-overlay' : ''}`}>
-      <input
-        type="date"
-        value={selectedNoteDate}
-        onChange={(e) => setSelectedNoteDate(e.target.value)}
-      />
       <div className="textarea-wrapper">
+        <div className="note-header">
+          <input
+            className="note-date-input"
+            type="date"
+            value={selectedNoteDate}
+            onChange={(e) => setSelectedNoteDate(e.target.value)}
+          />
+        </div>
         <textarea
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}

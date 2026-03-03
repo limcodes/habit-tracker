@@ -109,7 +109,7 @@ header h2 {
   border-radius: 4px;
 }
 
-.habit-input button, header button, .notes-input button {
+.habit-input button, header button, .notes-input > button {
   padding: 10px 15px;
   color: white;
   border: none;
@@ -395,17 +395,47 @@ th.today-column {
   margin-bottom: 15px;
 }
 
-.notes-input input[type="date"] {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+.note-date-input {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.8em;
+  color: #666;
+  outline: none;
+  padding: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.textarea-wrapper .note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .notes-input textarea {
-  padding: 8px;
-  border: 1px solid #ddd;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  resize: none;
+  outline: none;
+  width: 100%;
+  min-height: 20px;
+  padding: 2px 4px;
   border-radius: 4px;
-  resize: vertical;
+  transition: background-color 0.2s;
+  overflow: hidden;
+  line-height: inherit;
+}
+
+.notes-input textarea:focus {
+  background-color: rgba(33, 150, 243, 0.02);
 }
 
 .notes-list {
@@ -633,6 +663,14 @@ th.today-column {
   flex-direction: column;
 }
 
+.notes-input .textarea-wrapper {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+}
+
 .fullscreen-toggle-btn {
   position: absolute;
   bottom: 6px;
@@ -663,7 +701,7 @@ th.today-column {
   height: 100vh !important;
   min-width: 100vw !important;
   max-width: 100vw !important;
-  background: #F8F5F3;
+  background: white;
   z-index: 9999;
   display: flex;
   flex-direction: column;
@@ -683,11 +721,9 @@ th.today-column {
 .fullscreen-overlay .note-text-edit {
   flex: 1;
   resize: none;
-  font-size: 1.1em;
-  line-height: 1.7;
   border: none;
   outline: none;
-  background: transparent;
+  background: white;
   height: auto !important;
   min-height: 0;
 }
@@ -708,4 +744,11 @@ th.today-column {
 
 .fullscreen-overlay .note-header {
   flex-shrink: 0;
+}
+
+.fullscreen-overlay .textarea-wrapper {
+  background-color: white !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
 }

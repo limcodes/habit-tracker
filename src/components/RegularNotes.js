@@ -40,12 +40,12 @@ function RegularNotes({
     }
   };
 
-  // Auto-resize when editing starts or content changes
+  // Auto-resize when editing starts, content changes, or exiting fullscreen
   useEffect(() => {
     if (editingNoteId && textareaRef.current) {
       autoResizeTextarea();
     }
-  }, [editingNoteId, editNoteText]);
+  }, [editingNoteId, editNoteText, isFullscreen]);
 
   // Handle checkbox toggle in view mode
   useEffect(() => {
