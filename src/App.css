@@ -377,6 +377,8 @@ th.today-column {
 }
 
 .notes-section, .sticky-notes-section {
+  width: 540px;
+  min-width: 540px;
   max-width: 540px;
 }
 
