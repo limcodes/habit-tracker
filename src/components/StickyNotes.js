@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 function StickyNotes({ 
   notes,
@@ -17,6 +17,17 @@ function StickyNotes({
 }) {
   const textareaRef = useRef(null);
   const noteTextRef = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const exitFullscreen = useCallback(() => setIsFullscreen(false), []);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isFullscreen) exitFullscreen();
+    };
+    if (isFullscreen) document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen, exitFullscreen]);
 
   // Auto-resize textarea to match content
   const autoResizeTextarea = () => {
@@ -90,7 +101,7 @@ function StickyNotes({
       {notes.filter(note => note.isSticky).map((note) => (
         <div key={note.id} className="note-item sticky-note" data-note-id={note.id}>
           {editingNoteId === note.id ? (
-            <div className="note-edit">
+            <div className={`note-edit ${isFullscreen ? 'fullscreen-overlay' : ''}`}>
               <div className="note-header">
                 <span className="note-date">{note.date}</span>
                 <div className="note-edit-actions">
@@ -101,22 +112,29 @@ function StickyNotes({
                   >✓</button>
                   <button 
                     className="cancel-note-btn" 
-                    onClick={cancelEditNote}
+                    onClick={() => { setIsFullscreen(false); cancelEditNote(); }}
                     title="Cancel"
                   >✕</button>
                 </div>
               </div>
-              <textarea
-                ref={textareaRef}
-                className="note-text-edit"
-                value={editNoteText}
-                onChange={(e) => {
-                  setEditNoteText(e.target.value);
-                  autoResizeTextarea();
-                }}
-                rows="1"
-                autoFocus
-              />
+              <div className="textarea-wrapper">
+                <textarea
+                  ref={textareaRef}
+                  className="note-text-edit"
+                  value={editNoteText}
+                  onChange={(e) => {
+                    setEditNoteText(e.target.value);
+                    autoResizeTextarea();
+                  }}
+                  rows="1"
+                  autoFocus
+                />
+                <button
+                  className="fullscreen-toggle-btn"
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+                >{isFullscreen ? '✕' : '⛶'}</button>
+              </div>
             </div>
           ) : (
             <>
