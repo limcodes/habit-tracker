@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, query, getDocs, doc, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { getFirestore, collection, query, getDocs, doc, writeBatch } from 'firebase/firestore';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 
 // Validate Firebase configuration
@@ -80,16 +80,14 @@ export const saveHabitsToFirestore = async (userId, habits) => {
     // Use a batch write for atomic operations
     const batch = writeBatch(db);
 
-    // Delete existing habits and add new ones
-    const existingHabitsQuery = query(userHabitsRef);
-    const existingHabitsDocs = await getDocs(existingHabitsQuery);
-    
-    // Mark existing docs for deletion
-    existingHabitsDocs.docs.forEach(existingDoc => {
-      batch.delete(existingDoc.ref);
-    });
+    // Read existing habit ids so we only delete the ones that are gone.
+    // A diff-based upsert (instead of delete-all-then-write-all) means a
+    // failed or racing commit can never wipe the whole collection.
+    const existingHabitsDocs = await getDocs(query(userHabitsRef));
+    const existingIds = new Set(existingHabitsDocs.docs.map(d => d.id));
 
-    // Add new habits
+    // Upsert each current habit, tracking which ids are still present.
+    const keptIds = new Set();
     habits.forEach(habit => {
       // Validate habit data
       if (!habit.name) {
@@ -97,6 +95,7 @@ export const saveHabitsToFirestore = async (userId, habits) => {
         return;
       }
 
+      keptIds.add(habit.id);
       const habitDocRef = doc(userHabitsRef, habit.id);
       batch.set(habitDocRef, {
         id: habit.id,
@@ -105,6 +104,13 @@ export const saveHabitsToFirestore = async (userId, habits) => {
         skippedDays: habit.skippedDays || [],
         order: habit.order !== undefined ? habit.order : 0
       });
+    });
+
+    // Delete only habits that exist remotely but are no longer local.
+    existingIds.forEach(id => {
+      if (!keptIds.has(id)) {
+        batch.delete(doc(userHabitsRef, id));
+      }
     });
 
     // Commit the batch

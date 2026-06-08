@@ -1,290 +1,386 @@
+/* =====================================================================
+   Habits Log — "Muji Minimalism"
+   Calm, warm white, generous space. Timeless neutral type (Helvetica).
+   Borderless — structure comes from whitespace and the occasional hairline.
+   No shadows, no artificial ornament. A single muted sage signals state.
+   Functionality over decoration. Behavior/DOM unchanged — visuals only.
+   ===================================================================== */
+
+:root {
+  --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+  --bg: #F7F5F0;
+  --surface: #FFFFFF;
+  /* Darker ink across the board for stronger, more readable contrast. */
+  --ink: #232118;
+  --ink-soft: #4A453B;
+  --muted: #6B6557;
+  --line: #DDD8CC;
+  --line-2: #CFC9BA;
+
+  /* The one accent: a muted, natural sage — used only to mark state. */
+  --accent: #5E7D57;
+  --accent-fill: #CEDDC6;
+  --accent-tint: rgba(94, 125, 87, 0.16);
+
+  /* Consistent type scale — bumped up so the smallest text stays legible. */
+  --fs-xs: 0.8rem;
+  --fs-sm: 0.9rem;
+  --fs-base: 1rem;
+  --fs-md: 1.05rem;
+  --fs-lg: 1.2rem;
+
+  /* One size for every icon/glyph button on the page. */
+  --icon: 20px;
+
+  --space-sm: 8px;
+  --space-md: 14px;
+  --space-lg: 20px;
+  --tap-target: 44px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
 .App {
   width: 100%;
   max-width: 100%;
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-sans);
+  color: var(--ink);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  font-weight: 400;
+  line-height: 1.5;
+  animation: fade 0.4s ease both;
 }
 
-@media screen and (max-width: 768px) {
-  header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .user-info {
-    width: 100%;
-    justify-content: space-between;
-    padding: 10px;
-  }
-
-  .habit-container {
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-  }
-
-  .habit-table {
-    width: 100%;
-    overflow-x: auto;
-    margin-bottom: 20px;
-  }
-
-  .habit-table table {
-    min-width: 300px;
-  }
-
-  .habit-input, .notes-input {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .notes-section {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .notes-input textarea, 
-  .notes-input input[type='date'], 
-  .habit-input input {
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
-  .note-item {
-    max-width: 100%;
-  }
-
-  .habit-name {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .delete-habit-btn {
-    position: static;
-    margin-top: 5px;
-  }
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-body {
-  background: #F8F5F3;
-}
-
+/* ---------- Header ---------- */
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding: 0px 20px;
-  border-bottom: 1px solid #ddd;
-  background: white;
+  margin-bottom: 0;
+  padding: 13px clamp(16px, 2.5vw, 32px);
+  border-bottom: 1px solid var(--line-2);
+  background: transparent;
 }
 
 header h2 {
-  font-size: 1.2em;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--fs-lg);
+  letter-spacing: 0.02em;
+  color: var(--ink);
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.9em;
-  color: #333;
+  gap: 18px;
 }
 
-.habit-input {
-  display: flex;
-  margin-bottom: 15px;
-  width: 300px;
+.signout-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
 }
 
-.habit-input input {
-  flex-grow: 1;
-  padding: 8px;
-  margin-right: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+.signout-btn:hover {
+  color: var(--ink);
 }
 
-.habit-input button, header button, .notes-input > button {
-  padding: 10px 15px;
-  color: white;
+.signout-btn svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+}
+
+/* ---------- Buttons (quiet, flat) ---------- */
+.habit-input button,
+.notes-input > button {
+  padding: 10px 20px;
+  color: var(--surface);
+  background: var(--ink);
   border: none;
+  border-radius: 5px;
+  font-family: var(--font-sans);
   font-weight: 600;
-  border-radius: 4px;
+  font-size: var(--fs-sm);
   cursor: pointer;
-  max-width: 120px;
-  background-color: #51A868;
   align-self: flex-start;
+  transition: background 0.2s ease;
+}
+
+.habit-input button:hover,
+.notes-input > button:hover {
+  background: #2A2825;
 }
 
 header button {
-  background-color: transparent;
-  border: 1px solid #333;
-  color: #333;
-  font-size: 0.9em;
-  max-width: none;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  padding: 6px 4px;
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-.habit-container {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
+header button:hover {
+  color: var(--ink);
 }
 
-.habit-table {
-  border-collapse: collapse;
-  width: 100%;
-  background-color: rgba(255,255,255,0.8);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-  border-radius: 4px;
-}
-
-.habit-table th, .habit-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
+/* ---------- State / empty / hero ---------- */
+.state-message {
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: var(--space-lg);
   text-align: center;
 }
 
-.habit-table th {
-  background: url(https://grainy-gradients.vercel.app/noise.svg);
-  font-weight: bold;
+.empty-state {
+  border: none;
+  background: transparent;
 }
 
-.day-of-week {
-  font-size: 0.7em;
-  color: #666;
+.signed-out-hero {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  text-align: center;
+}
+
+.hero-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  max-width: 440px;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.hero-card h1 {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: clamp(2rem, 5vw, 2.6rem);
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.hero-card p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 1rem;
+  line-height: 1.65;
+  max-width: 36ch;
+}
+
+.hero-cta {
+  margin-top: 4px;
+  padding: 13px 28px;
+  background: var(--ink);
+  color: var(--surface);
+  border: none;
+  border-radius: 5px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.hero-cta:hover {
+  background: #2A2825;
+}
+
+/* ---------- Main layout: fluid, generous ---------- */
+.habit-container {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(24px, 3vw, 48px);
+  width: 100%;
+  margin: 0;
+  padding: clamp(18px, 2vw, 28px) clamp(16px, 2.5vw, 32px) 36px;
+  box-sizing: border-box;
+}
+
+.habit-list {
+  /* Golden ratio: habits ≈ 38.2%, notes ≈ 61.8% (1 : 1.618). */
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* ---------- Habit grid (borderless heatmap) ---------- */
+.habit-table {
+  border-collapse: collapse;
+  /* Size to content so the full week + streak always fit in the 40% panel;
+     scrolls only if the viewport is genuinely too narrow (mobile). */
+  width: auto;
+  max-width: 100%;
+  background: transparent;
+  margin-bottom: 18px;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.habit-table th,
+.habit-table td {
+  border: none;
+  padding: 7px 6px;
+  text-align: center;
+}
+
+/* The only structural lines: a hairline under the header and between rows. */
+.habit-table thead th {
+  border-bottom: 1px solid var(--line-2);
+  padding-bottom: 9px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.habit-table tbody td {
+  border-bottom: 1px solid var(--line);
+}
+
+.habit-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.habit-table thead th:first-child {
+  text-align: left;
+  font-weight: 700;
+  color: var(--ink);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
+/* Column sizing: label column, content-hugging streak, days fill rest.
+   Kept compact so the grid fits the narrower 40% habit panel, but with a
+   firm minimum so habit names never collapse into per-character wrapping. */
+.habit-table thead th:first-child,
+.habit-table tbody td:first-child {
+  width: 160px;
+  min-width: 150px;
+}
+
+.habit-table .last-column {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.day-of-week {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .day-of-month {
-  font-size: 1em;
-  font-weight: bold;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .habit-table .date-header {
-  padding: 4px;
-  min-width: 25px;
-  max-width: 25px;  
+  padding: 6px 4px 9px;
+  min-width: 44px;
 }
 
+/* Today: no fill — just a calm sage tick under the date. */
 .date-header.today {
-  background: #000;
-  color: #FFF; /* Light yellow for today's header */
-  font-weight: bold;
+  box-shadow: inset 0 -2px 0 0 var(--accent);
+}
+
+.date-header.today .day-of-month {
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .habit-table .habit-day {
-  width: 25px;
-  min-width: 25px;
-  max-width: 25px;
-  padding: 4px;
+  min-width: 44px;
+  height: 40px;
+  padding: 5px;
 }
 
 .habit-day {
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background 0.2s ease;
+}
+
+@media (hover: hover) {
+  .habit-day:not(.completed):not(.skipped):hover {
+    background: var(--line);
+  }
+}
+
+.habit-day:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+}
+
+/* Completed: soft sage tile, inset from the cell so it floats in white. */
+.habit-day.completed {
+  background: var(--accent-fill);
+  background-clip: content-box;
+  border-radius: 4px;
 }
 
 .habit-day.today {
-  background-color: #EAF2FB; /* Light yellow for today's data cells */
-  /* border: 1px solid #f0e68c; */ /* Optional border */
+  background: var(--accent-tint);
+  background-clip: content-box;
+  border-radius: 4px;
 }
 
-.habit-day.completed {
-  font-weight: bold;
-  color: white;
+.habit-day.today.completed {
+  background: var(--accent-fill);
+  background-clip: content-box;
+}
+
+/* Skipped: a quiet muted mark, no fill. */
+.habit-day.skipped {
+  color: var(--ink-soft);
+  font-size: var(--fs-base);
 }
 
 .habit-streak {
   cursor: default;
-}
-
-.habit-table tbody tr:nth-child(13n+1) .habit-day.completed {
-  background-color: #4CB944;
-}
-
-.habit-table tbody tr:nth-child(13n+2) .habit-day.completed {
-  background-color: #3ABEA2;
-}
-
-.habit-table tbody tr:nth-child(13n+3) .habit-day.completed {
-  background-color: #28C2FF;
-}
-
-.habit-table tbody tr:nth-child(13n+4) .habit-day.completed {
-  background-color: #4386F1;
-}
-
-.habit-table tbody tr:nth-child(13n+5) .habit-day.completed {
-  background-color: #5E4AE3;
-}
-
-.habit-table tbody tr:nth-child(13n+6) .habit-day.completed {
-  background-color: #A44EE1;
-}
-
-.habit-table tbody tr:nth-child(13n+7) .habit-day.completed {
-  background-color: #D2377E;
-}
-
-.habit-table tbody tr:nth-child(13n+8) .habit-day.completed {
-  background-color: #BA1B1D;
-}
-
-.habit-table tbody tr:nth-child(13n+9) .habit-day.completed {
-  background-color: #D95D4B;
-}
-
-.habit-table tbody tr:nth-child(13n+10) .habit-day.completed {
-  background-color: #F79F79;
-}
-
-.habit-table tbody tr:nth-child(13n+11) .habit-day.completed {
-  background-color: #F7D08A;
-}
-
-.habit-table tbody tr:nth-child(13n+12) .habit-day.completed {
-  background-color: #BEC873;
-}
-
-.habit-table tbody tr:nth-child(13n) .habit-day.completed {
-  background-color: #85C15B;
-}
-
-/* Skipped day styling */
-.habit-day.skipped {
-  background-color: #f44336;
-  color: white;
-  font-size: 1.2em;
-  font-weight: bold;
-  text-align: center;
-}
-
-.habit-cell.today {
-  background-color: #2196F3;
+  font-weight: 700;
+  font-size: var(--fs-md);
+  color: var(--accent);
 }
 
 .streak-column {
-  font-weight: bold;
-  color: #2196F3;
-  background-color: transparent !important;
+  font-weight: 600;
+  color: var(--accent);
+  background: transparent !important;
   cursor: default !important;
 }
 
-.delete-habit-btn {
-  background: none;
-  border: none;
-  color: #f44336;
-  margin-left: 10px;
-  cursor: pointer;
-  font-size: 0.8em;
-}
-
+/* ---------- Habit name cell / editing ---------- */
 .habit-name {
   display: flex;
   align-items: center;
@@ -294,113 +390,173 @@ header button {
 }
 
 .delete-habit-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
   position: absolute;
-  right: -5px;
-  opacity: 0;
-  transition: opacity 0.3s;
+  right: -4px;
+  cursor: pointer;
+  font-size: var(--icon);
+  line-height: 1;
+  opacity: 1;
+  transition: opacity 0.2s, color 0.2s;
 }
 
-.habit-table td:first-child:hover .delete-habit-btn {
-  opacity: 1;
+.delete-habit-btn:hover {
+  color: var(--ink);
+}
+
+@media (hover: hover) {
+  .delete-habit-btn {
+    opacity: 0;
+  }
+  .habit-table td:first-child:hover .delete-habit-btn {
+    opacity: 1;
+  }
 }
 
 .habit-name span {
   cursor: pointer;
-  transition: color 0.3s;
+  transition: color 0.2s;
+  overflow-wrap: break-word;
+  font-weight: 500;
+  font-size: var(--fs-base);
+  color: var(--ink);
 }
 
 .habit-name span:hover {
-  color: #2196F3;
+  color: var(--accent);
+}
+
+.habit-table td:first-child {
+  text-align: left;
 }
 
 .habit-edit {
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
 
 .habit-edit input {
-  padding: 5px;
-  margin-bottom: 5px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 7px 2px;
+  border: none;
+  border-bottom: 1px solid var(--line-2);
+  border-radius: 0;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  background: transparent;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.habit-edit input:focus {
+  border-bottom-color: var(--accent);
 }
 
 .habit-edit-actions {
   display: flex;
-  gap: 5px;
+  gap: 14px;
 }
 
 .habit-edit-actions button {
-  padding: 5px 10px;
+  padding: 4px 0;
   border: none;
-  border-radius: 4px;
+  background: none;
+  border-radius: 0;
   cursor: pointer;
-  font-size: 0.8em;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
 }
 
 .habit-edit-actions button:first-child {
-  background-color: #4CAF50;
-  color: white;
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .habit-edit-actions button:last-child {
-  background-color: #f44336;
-  color: white;
+  color: var(--muted);
 }
 
-.today-column {
-  background-color: rgba(33, 150, 243, 0.1);
-  font-weight: bold;
-}
-
-th.today-column {
-  background: #000;
-  color: #FFF;
-}
-
-.habit-table td:first-child {
-  text-align: left;
+/* ---------- Habit input + week nav (borderless, underline) ---------- */
+.habit-input {
+  display: flex;
   align-items: center;
+  width: 100%;
+  max-width: 440px;
+}
+
+.habit-input input {
+  flex-grow: 1;
+  padding: 10px 2px;
+  margin-right: 16px;
+  border: none;
+  border-bottom: 1px solid var(--line-2);
+  border-radius: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  background: transparent;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.habit-input input::placeholder {
+  color: var(--muted);
+}
+
+.habit-input input:focus {
+  border-bottom-color: var(--accent);
+}
+
+.input-and-nav {
+  display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
-@media (max-width: 600px) {
-  .habit-table {
-    font-size: 0.8em;
-    width: auto;
-  }
-  
-  .habit-table th, .habit-table td {
-    padding: 5px;
-  }
-
+.week-navigation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.notes-section, .sticky-notes-section {
-  width: 540px;
-  min-width: 540px;
-  max-width: 540px;
+/* ---------- Notes (borderless list) ---------- */
+.notes-section,
+.sticky-notes-section {
+  width: 100%;
+  max-width: none;
+}
+
+.notes-section {
+  flex: 1.618 1 0;
+  min-width: 0;
 }
 
 .notes-section h3 {
-  font-size: 1.2em;
-  margin: 0;
-  margin-bottom: 10px;
+  font-weight: 700;
+  font-size: var(--fs-base);
+  margin: 0 0 10px;
 }
 
 .notes-input {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .note-date-input {
   border: none;
   background: transparent;
-  font-family: inherit;
-  font-size: 0.8em;
-  color: #666;
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
   outline: none;
   padding: 0;
   cursor: pointer;
@@ -408,79 +564,103 @@ th.today-column {
   text-align: left;
 }
 
+/* Enlarge the native calendar picker button so it's easy to see and tap. */
+.note-date-input::-webkit-calendar-picker-indicator {
+  width: 18px;
+  height: 18px;
+  padding: 2px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.note-date-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.85;
+}
+
 .textarea-wrapper .note-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .notes-input textarea {
   border: none;
   background: transparent;
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--ink);
   white-space: pre-wrap;
   word-wrap: break-word;
   resize: none;
   outline: none;
   width: 100%;
   min-height: 20px;
-  padding: 2px 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  padding: 2px 0;
   overflow: hidden;
-  line-height: inherit;
+  line-height: 1.6;
 }
 
-.notes-input textarea:focus {
-  background-color: rgba(33, 150, 243, 0.02);
+.notes-input textarea::placeholder {
+  color: var(--muted);
 }
 
 .notes-list {
-  max-height: 300px;
+  max-height: none;
 }
 
+/* Notes are list entries separated by hairlines — no cards, no shadows. */
 .note-item {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 10px;
-  margin-bottom: 10px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 11px 0;
+  margin: 0;
   position: relative;
 }
 
-.note-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 5px;
+.notes-list .note-item:last-child {
+  border-bottom: none;
+}
+
+/* Sticky notes: a quiet sage band rather than a loud card. */
+.sticky-note {
+  background: var(--accent-tint);
+  border-bottom: none;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 4px;
 }
 
 .note-date {
-  color: #666;
-  font-size: 0.8em;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .note-text {
   white-space: pre-wrap;
   word-wrap: break-word;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  padding: 2px 4px;
-  border-radius: 4px;
+  cursor: text;
+  line-height: 1.6;
+  font-size: var(--fs-base);
+  transition: color 0.2s;
+  padding: 2px 0;
+  margin: 0;
 }
 
-.note-text:hover {
-  background-color: rgba(0, 0, 0, 0.02);
-}
-
+/* Fixed height in both view and edit modes so toggling doesn't shift the
+   content down (the edit-mode action buttons used to inflate the header). */
 .note-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 5px;
+  min-height: 28px;
+  margin-bottom: 6px;
   position: relative;
 }
 
@@ -488,175 +668,172 @@ th.today-column {
   position: absolute;
   display: flex;
   align-items: center;
-  opacity: 0;
+  gap: 0;
+  opacity: 1;
   right: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.2s;
 }
 
-.note-item:hover .note-actions {
+@media (hover: hover) {
+  .note-actions {
+    opacity: 0;
+  }
+  .note-item:hover .note-actions {
+    opacity: 1;
+  }
+}
+
+/* Tone emoji glyphs down to neutral so they read calm, not decorative. */
+.delete-note-btn,
+.sticky-note-btn {
+  filter: grayscale(1);
+  opacity: 0.65;
+  transition: opacity 0.2s;
+}
+
+.delete-note-btn:hover,
+.sticky-note-btn:hover {
   opacity: 1;
 }
 
-.input-and-nav {
-  display: flex;
-  justify-content: space-between;
-}
-
-.week-navigation {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-
-}
-
-
-
-.edit-note-btn, .delete-note-btn, .sticky-note-btn, .week-nav-btn {
+.edit-note-btn,
+.delete-note-btn,
+.sticky-note-btn,
+.week-nav-btn {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.9em;
+  font-size: var(--icon);
+  line-height: 1;
   padding: 2px 5px;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  border-radius: 0;
+  min-width: var(--tap-target);
+  min-height: var(--tap-target);
 }
 
 .week-nav-btn {
-  font-size: 1.5em;
-  color: #999;
-  padding-top: 0;
+  font-size: 26px;
+  font-weight: 300;
+  color: var(--muted);
+  transition: color 0.2s;
 }
 
+.week-nav-btn:hover {
+  color: var(--ink);
+}
+
+/* Note action icons (trash / pin): smaller glyph, sitting close together. */
+.delete-note-btn,
+.sticky-note-btn {
+  font-size: 15px;
+  min-width: 28px;
+  padding: 2px 3px;
+}
 
 .edit-note-btn {
-  color: #2196F3;
-}
-
-.delete-note-btn {
-  color: #f44336;
+  color: var(--accent);
 }
 
 .note-edit {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
 }
-
-
 
 .note-edit-actions {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 0;
 }
 
-.save-note-btn, .cancel-note-btn {
+.save-note-btn,
+.cancel-note-btn {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.9em;
-  padding: 2px 5px;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  font-size: 15px;
+  line-height: 1;
+  padding: 2px 3px;
+  border-radius: 0;
+  min-width: 28px;
+  min-height: 28px;
 }
 
 .save-note-btn {
-  color: #4CAF50;
-}
-
-.save-note-btn:hover {
-  background-color: rgba(76, 175, 80, 0.1);
+  color: var(--accent);
 }
 
 .cancel-note-btn {
-  color: #f44336;
+  color: var(--muted);
 }
 
-.cancel-note-btn:hover {
-  background-color: rgba(244, 67, 54, 0.1);
-}
-
-.habit-input input {
-  font-family: monospace;
-}
-
-/* Inline editing styles for seamless UX */
+/* Inline editing textarea */
 .note-text-edit {
   border: none;
   background: transparent;
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--ink);
   white-space: pre-wrap;
   word-wrap: break-word;
   resize: none;
   outline: none;
   width: 100%;
   min-height: 20px;
-  padding: 2px 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  padding: 2px 0;
   overflow: hidden;
-  line-height: inherit;
+  line-height: 1.6;
 }
 
-.note-text-edit:focus {
-  background-color: rgba(33, 150, 243, 0.02);
-}
-
-.note-date-edit:focus {
-  background-color: rgba(33, 150, 243, 0.02);
-}
-
-/* Todo checkbox styles */
+/* ---------- Todo checkboxes ---------- */
 .todo-item {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin: 4px 0;
+  align-items: center;
+  gap: 10px;
+  margin: 5px 0;
   cursor: pointer;
   user-select: none;
 }
 
 .todo-checkbox {
-  margin-top: 3px;
   cursor: pointer;
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
 }
 
 .todo-text {
   flex: 1;
-  transition: all 0.2s ease;
 }
 
 .todo-checked {
   text-decoration: line-through;
-  color: #999;
-  opacity: 0.7;
+  color: var(--muted);
 }
 
-/* Drag and drop styles */
+/* ---------- Drag & drop (subtle) ---------- */
 .habit-table tbody tr {
   cursor: move;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .habit-table tbody tr.dragging {
-  opacity: 0.5;
-  background-color: #f0f0f0;
+  opacity: 0.45;
 }
 
 .habit-table tbody tr.drag-over {
-  border-top: 3px solid #2196F3;
+  box-shadow: inset 0 2px 0 0 var(--accent);
 }
 
-.habit-table tbody tr:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+@media (hover: hover) {
+  .habit-table tbody tr:hover {
+    background: rgba(58, 56, 51, 0.015);
+  }
 }
 
-/* Textarea wrapper for fullscreen toggle positioning */
+/* ---------- Note edit wrapper (borderless) ---------- */
 .textarea-wrapper {
   position: relative;
   display: flex;
@@ -664,91 +841,64 @@ th.today-column {
 }
 
 .notes-input .textarea-wrapper {
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 10px;
-}
-
-.fullscreen-toggle-btn {
-  position: absolute;
-  bottom: 6px;
-  right: 6px;
-  background: rgba(0, 0, 0, 0.05);
+  background: transparent;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1em;
-  padding: 2px 6px;
-  color: #666;
-  line-height: 1;
-  transition: background-color 0.2s, color 0.2s;
-  z-index: 1;
+  border-bottom: 1px solid var(--line-2);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0 0 8px;
+  transition: border-color 0.2s ease;
 }
 
-.fullscreen-toggle-btn:hover {
-  background: rgba(0, 0, 0, 0.12);
-  color: #333;
+.notes-input .textarea-wrapper:focus-within {
+  border-bottom-color: var(--accent);
 }
 
-/* Fullscreen overlay */
-.fullscreen-overlay {
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  width: 100vw !important;
-  height: 100vh !important;
-  min-width: 100vw !important;
-  max-width: 100vw !important;
-  background: white;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  padding: 40px 15vw;
-  box-sizing: border-box;
-  margin: 0 !important;
-  gap: 10px;
+/* ---------- Motion guard ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
-.fullscreen-overlay .textarea-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+/* ---------- Responsive ---------- */
+@media screen and (max-width: 768px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .user-info {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .habit-container {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 24px 18px 48px;
+    gap: 40px;
+  }
+
+  .habit-input {
+    max-width: 100%;
+  }
+
+  .notes-input textarea,
+  .notes-input input[type='date'],
+  .habit-input input {
+    width: 100%;
+    box-sizing: border-box;
+  }
 }
 
-.fullscreen-overlay textarea,
-.fullscreen-overlay .note-text-edit {
-  flex: 1;
-  resize: none;
-  border: none;
-  outline: none;
-  background: white;
-  height: auto !important;
-  min-height: 0;
-}
-
-.fullscreen-overlay .fullscreen-toggle-btn {
-  position: fixed;
-  top: 12px;
-  right: 16px;
-  bottom: auto;
-  font-size: 1.3em;
-  padding: 4px 10px;
-  background: rgba(0, 0, 0, 0.08);
-}
-
-.fullscreen-overlay .fullscreen-toggle-btn:hover {
-  background: rgba(0, 0, 0, 0.18);
-}
-
-.fullscreen-overlay .note-header {
-  flex-shrink: 0;
-}
-
-.fullscreen-overlay .textarea-wrapper {
-  background-color: white !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
+@media (max-width: 600px) {
+  .habit-table th,
+  .habit-table td {
+    padding: 8px 4px;
+  }
 }

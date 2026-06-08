@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { format, eachDayOfInterval, isToday, parseISO, differenceInDays, startOfWeek, addDays, subDays, isBefore, startOfDay } from 'date-fns';
+import { format, eachDayOfInterval, parseISO, differenceInDays, addDays, subDays, isBefore, startOfDay } from 'date-fns';
 import { addDoc, collection, query, getDocs, orderBy, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db, signInWithGoogle, signOutUser, saveHabitsToFirestore, fetchHabitsFromFirestore } from './firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -15,6 +15,61 @@ import StickyNotes from './components/StickyNotes';
 // Import utilities
 import { parseNoteText } from './utils/textFormatter';
 
+// Count consecutive completed days ending at the most recent entry. Exported
+// for unit testing. Does not mutate its input.
+export const calculateStreak = (completedDays) => {
+  if (!completedDays || completedDays.length === 0) return 0;
+
+  // Sort completed days in descending order (clone first — sorting the
+  // state array in place would mutate React state).
+  const sortedDays = [...completedDays].sort((a, b) => new Date(b) - new Date(a));
+
+  // Get today and yesterday's dates
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const dayBeforeYesterday = new Date(today);
+  dayBeforeYesterday.setDate(today.getDate() - 2);
+
+  const todayString = format(today, 'yyyy-MM-dd');
+  const yesterdayString = format(yesterday, 'yyyy-MM-dd');
+  const dayBeforeYesterdayString = format(dayBeforeYesterday, 'yyyy-MM-dd');
+
+  // Check if the habit was completed today, yesterday, or the day before yesterday
+  const wasCompletedToday = completedDays.includes(todayString);
+  const wasCompletedYesterday = completedDays.includes(yesterdayString);
+  const wasCompletedDayBeforeYesterday = completedDays.includes(dayBeforeYesterdayString);
+
+  // If completed today but not in previous two days, return 1
+  if (wasCompletedToday && !wasCompletedYesterday && !wasCompletedDayBeforeYesterday) {
+    return 1;
+  }
+
+  // If not completed in the last two days, reset streak
+  if (!wasCompletedYesterday && !wasCompletedDayBeforeYesterday) {
+    return 0;
+  }
+
+  let currentStreak = 0;
+  let lastDate = parseISO(sortedDays[0]);
+
+  // Start from the most recent day
+  for (let i = 0; i < sortedDays.length; i++) {
+    const currentDate = parseISO(sortedDays[i]);
+
+    // If this is the first iteration or the date is exactly one day before the last date
+    if (i === 0 || differenceInDays(lastDate, currentDate) === 1) {
+      currentStreak++;
+      lastDate = currentDate;
+    } else {
+      // Streak is broken
+      break;
+    }
+  }
+
+  return currentStreak;
+};
+
 function App() {
   const today = new Date();
   const [currentPeriodEndDate, setCurrentPeriodEndDate] = useState(today);
@@ -29,6 +84,8 @@ function App() {
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editNoteText, setEditNoteText] = useState('');
   const [stickyNoteId, setStickyNoteId] = useState(null);
+  const [habitsLoading, setHabitsLoading] = useState(false);
+  const [notesLoading, setNotesLoading] = useState(false);
   const habitsLoaded = React.useRef(false);
 
   const goToPreviousWeek = () => {
@@ -48,11 +105,20 @@ function App() {
   useEffect(() => {
     const fetchHabits = async () => {
       if (user) {
-        console.log('Current user UID:', user.uid);
         habitsLoaded.current = false;
-        const fetchedHabits = await fetchHabitsFromFirestore(user.uid);
-        setHabits(fetchedHabits);
-        habitsLoaded.current = true;
+        setHabitsLoading(true);
+        try {
+          const fetchedHabits = await fetchHabitsFromFirestore(user.uid);
+          setHabits(fetchedHabits);
+          // Only enable saving once a load has actually succeeded — otherwise
+          // a failed fetch could let an empty local state overwrite the remote.
+          habitsLoaded.current = true;
+        } catch (error) {
+          console.error('Failed to load habits:', error);
+          habitsLoaded.current = false;
+        } finally {
+          setHabitsLoading(false);
+        }
       } else {
         setHabits([]);
         habitsLoaded.current = false;
@@ -75,7 +141,9 @@ function App() {
       }
     };
 
-    // Debounce save to reduce unnecessary Firestore writes
+    // Debounce save to reduce unnecessary Firestore writes. The habitsLoaded
+    // guard ensures we never persist the initial empty state over remote data
+    // before the first successful fetch has populated it.
     if (user && habitsLoaded.current) {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(saveHabits, 500); // 500ms delay
@@ -89,6 +157,7 @@ function App() {
   useEffect(() => {
     const fetchNotes = async () => {
       if (user) {
+        setNotesLoading(true);
         try {
           const userNotesRef = collection(db, 'users', user.uid, 'notes');
           const q = query(userNotesRef, orderBy('createdAt', 'desc'));
@@ -100,6 +169,8 @@ function App() {
           setNotes(fetchedNotes);
         } catch (error) {
           console.error('Error fetching notes:', error);
+        } finally {
+          setNotesLoading(false);
         }
       } else {
         setNotes([]);
@@ -123,52 +194,36 @@ function App() {
     }
   };
 
-  const toggleHabitCompletion = (habitId, dateString) => {
+  // Cycle a single day cell through three states on each tap/click:
+  // empty -> completed -> skipped -> empty. This replaces the old
+  // left-click-to-complete / right-click-to-skip split, which was impossible
+  // on touch devices (no right-click). Completed and skipped stay mutually
+  // exclusive.
+  const cycleHabitDay = (habitId, dateString) => {
     if (!user) return;
     const updatedHabits = habits.map(habit => {
-      if (habit.id === habitId) {
-        const isCompleted = habit.completedDays.includes(dateString);
-        const isSkipped = habit.skippedDays?.includes(dateString);
-        
-        // Remove from skipped if it was skipped
-        const newSkippedDays = isSkipped 
-          ? habit.skippedDays.filter(day => day !== dateString)
-          : habit.skippedDays || [];
-        
-        return {
-          ...habit,
-          completedDays: isCompleted
-            ? habit.completedDays.filter(day => day !== dateString)
-            : [...habit.completedDays, dateString],
-          skippedDays: newSkippedDays
-        };
-      }
-      return habit;
-    });
-    setHabits(updatedHabits);
-  };
+      if (habit.id !== habitId) return habit;
 
-  const toggleHabitSkip = (habitId, dateString) => {
-    if (!user) return;
-    const updatedHabits = habits.map(habit => {
-      if (habit.id === habitId) {
-        const isSkipped = habit.skippedDays?.includes(dateString);
-        const isCompleted = habit.completedDays.includes(dateString);
-        
-        // Remove from completed if it was completed
-        const newCompletedDays = isCompleted 
-          ? habit.completedDays.filter(day => day !== dateString)
-          : habit.completedDays;
-        
-        return {
-          ...habit,
-          completedDays: newCompletedDays,
-          skippedDays: isSkipped
-            ? (habit.skippedDays || []).filter(day => day !== dateString)
-            : [...(habit.skippedDays || []), dateString]
-        };
+      const completedDays = habit.completedDays || [];
+      const skippedDays = habit.skippedDays || [];
+      const isCompleted = completedDays.includes(dateString);
+      const isSkipped = skippedDays.includes(dateString);
+
+      const withoutDay = {
+        completedDays: completedDays.filter(day => day !== dateString),
+        skippedDays: skippedDays.filter(day => day !== dateString)
+      };
+
+      if (isCompleted) {
+        // completed -> skipped
+        return { ...habit, ...withoutDay, skippedDays: [...withoutDay.skippedDays, dateString] };
       }
-      return habit;
+      if (isSkipped) {
+        // skipped -> empty
+        return { ...habit, ...withoutDay };
+      }
+      // empty -> completed
+      return { ...habit, ...withoutDay, completedDays: [...withoutDay.completedDays, dateString] };
     });
     setHabits(updatedHabits);
   };
@@ -297,58 +352,6 @@ function App() {
     }
   };
 
-  const calculateStreak = (completedDays) => {
-    if (!completedDays || completedDays.length === 0) return 0;
-    
-    // Sort completed days in descending order
-    const sortedDays = completedDays.sort((a, b) => new Date(b) - new Date(a));
-    
-    // Get today and yesterday's dates
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    const dayBeforeYesterday = new Date(today);
-    dayBeforeYesterday.setDate(today.getDate() - 2);
-    
-    const todayString = format(today, 'yyyy-MM-dd');
-    const yesterdayString = format(yesterday, 'yyyy-MM-dd');
-    const dayBeforeYesterdayString = format(dayBeforeYesterday, 'yyyy-MM-dd');
-    
-    // Check if the habit was completed today, yesterday, or the day before yesterday
-    const wasCompletedToday = completedDays.includes(todayString);
-    const wasCompletedYesterday = completedDays.includes(yesterdayString);
-    const wasCompletedDayBeforeYesterday = completedDays.includes(dayBeforeYesterdayString);
-    
-    // If completed today but not in previous two days, return 1
-    if (wasCompletedToday && !wasCompletedYesterday && !wasCompletedDayBeforeYesterday) {
-      return 1;
-    }
-    
-    // If not completed in the last two days, reset streak
-    if (!wasCompletedYesterday && !wasCompletedDayBeforeYesterday) {
-      return 0;
-    }
-    
-    let currentStreak = 0;
-    let lastDate = parseISO(sortedDays[0]);
-    
-    // Start from the most recent day
-    for (let i = 0; i < sortedDays.length; i++) {
-      const currentDate = parseISO(sortedDays[i]);
-      
-      // If this is the first iteration or the date is exactly one day before the last date
-      if (i === 0 || differenceInDays(lastDate, currentDate) === 1) {
-        currentStreak++;
-        lastDate = currentDate;
-      } else {
-        // Streak is broken
-        break;
-      }
-    }
-    
-    return currentStreak;
-  };
-
   const addNote = async () => {
     if (!user) return;
     if (newNote.trim()) {
@@ -405,34 +408,52 @@ function App() {
     <div className="App">
       <header>
         <h2>Habits Log</h2>
-        {user ? (
+        {user && (
           <div className="user-info">
-            <span>Signed in as {user.email}</span>
-            <button onClick={handleSignOut}>Sign Out</button>
+            <button onClick={handleSignOut} className="signout-btn" title="Sign out" aria-label="Sign out">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
           </div>
-        ) : (
-          <button onClick={handleSignIn}>Sign In with Google</button>
         )}
       </header>
+
+      {!user && (
+        <div className="signed-out-hero">
+          <div className="hero-card">
+            <h1>Habits Log</h1>
+            <p>Track your daily habits, build streaks, and keep notes — all in one place.</p>
+            <button className="hero-cta" onClick={handleSignIn}>Sign In with Google</button>
+          </div>
+        </div>
+      )}
 
       {user && (
         <div className="habit-container">
           <div className="habit-list">
-            <HabitsTable 
-              habits={habits}
-              displayedDays={displayedDays}
-              toggleHabitCompletion={toggleHabitCompletion}
-              toggleHabitSkip={toggleHabitSkip}
-              startEditHabit={startEditHabit}
-              deleteHabit={deleteHabit}
-              editingHabitId={editingHabitId}
-              editHabitName={editHabitName}
-              setEditHabitName={setEditHabitName}
-              saveEditHabit={saveEditHabit}
-              cancelEditHabit={cancelEditHabit}
-              calculateStreak={calculateStreak}
-              reorderHabits={reorderHabits}
-            />
+            {habitsLoading && habits.length === 0 ? (
+              <p className="state-message" role="status">Loading your habits…</p>
+            ) : habits.length === 0 ? (
+              <p className="state-message empty-state">No habits yet — add your first one below.</p>
+            ) : (
+              <HabitsTable
+                habits={habits}
+                displayedDays={displayedDays}
+                cycleHabitDay={cycleHabitDay}
+                startEditHabit={startEditHabit}
+                deleteHabit={deleteHabit}
+                editingHabitId={editingHabitId}
+                editHabitName={editHabitName}
+                setEditHabitName={setEditHabitName}
+                saveEditHabit={saveEditHabit}
+                cancelEditHabit={cancelEditHabit}
+                calculateStreak={calculateStreak}
+                reorderHabits={reorderHabits}
+              />
+            )}
             <div className="input-and-nav">
               <div className="week-navigation">
                 <button className="week-nav-btn" onClick={goToPreviousWeek}>&lsaquo;</button>
@@ -470,7 +491,10 @@ function App() {
               setNewNote={setNewNote}
               addNote={addNote}
             />
-            <RegularNotes 
+            {notesLoading && notes.length === 0 ? (
+              <p className="state-message" role="status">Loading your notes…</p>
+            ) : (
+            <RegularNotes
               notes={notes}
               displayedDays={displayedDays}
               editingNoteId={editingNoteId}
@@ -486,6 +510,7 @@ function App() {
               updateNoteCheckbox={updateNoteCheckbox}
               parseNoteText={parseNoteText}
             />
+            )}
           </div>
         </div>
       )}

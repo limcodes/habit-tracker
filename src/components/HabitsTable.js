@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { format, isToday } from 'date-fns';
 
-function HabitsTable({ 
-  habits, 
-  displayedDays, 
-  toggleHabitCompletion,
-  toggleHabitSkip,
-  startEditHabit, 
+function HabitsTable({
+  habits,
+  displayedDays,
+  cycleHabitDay,
+  startEditHabit,
   deleteHabit,
   editingHabitId,
   editHabitName,
@@ -128,19 +127,25 @@ function HabitsTable({
                 </div>
               )}
             </td>
-            {displayedDays.map((day, index) => {
+            {displayedDays.map((day) => {
               const dateString = format(day, 'yyyy-MM-dd');
               const isCompleted = habit.completedDays.includes(dateString);
               const isSkipped = habit.skippedDays?.includes(dateString);
               const isCurrentDay = isToday(day);
+              const state = isCompleted ? 'completed' : isSkipped ? 'skipped' : 'empty';
               return (
                 <td
                   key={dateString}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${habit.name}, ${format(day, 'EEEE MMMM d')}: ${state}. Activate to change.`}
                   className={`habit-day ${isCompleted ? 'completed' : ''} ${isSkipped ? 'skipped' : ''} ${isCurrentDay ? 'today' : ''}`}
-                  onClick={() => toggleHabitCompletion(habit.id, dateString)}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    toggleHabitSkip(habit.id, dateString);
+                  onClick={() => cycleHabitDay(habit.id, dateString)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      cycleHabitDay(habit.id, dateString);
+                    }
                   }}
                 >
                   {isCompleted ? ' ' : isSkipped ? '✕' : ''}

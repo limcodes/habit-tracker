@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 function StickyNotes({ 
   notes,
@@ -17,17 +17,6 @@ function StickyNotes({
 }) {
   const textareaRef = useRef(null);
   const noteTextRef = useRef(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  const exitFullscreen = useCallback(() => setIsFullscreen(false), []);
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isFullscreen) exitFullscreen();
-    };
-    if (isFullscreen) document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen, exitFullscreen]);
 
   // Auto-resize textarea to match content
   const autoResizeTextarea = () => {
@@ -38,12 +27,12 @@ function StickyNotes({
     }
   };
 
-  // Auto-resize when editing starts, content changes, or exiting fullscreen
+  // Auto-resize when editing starts or content changes
   useEffect(() => {
     if (editingNoteId && textareaRef.current) {
       autoResizeTextarea();
     }
-  }, [editingNoteId, editNoteText, isFullscreen]);
+  }, [editingNoteId, editNoteText]);
 
   // Handle checkbox toggle in view mode
   useEffect(() => {
@@ -51,11 +40,11 @@ function StickyNotes({
       if (e.target.classList.contains('todo-checkbox')) {
         e.stopPropagation(); // Prevent event bubbling
         
-        const lineIndex = parseInt(e.target.getAttribute('data-line'));
+        const lineIndex = parseInt(e.target.getAttribute('data-line'), 10);
         const noteElement = e.target.closest('[data-note-id]');
         const noteId = noteElement?.getAttribute('data-note-id');
-        
-        if (noteId) {
+
+        if (noteId && !Number.isNaN(lineIndex)) {
           const note = notes.find(n => n.id === noteId);
           if (note) {
             const lines = note.text.split('\n');
@@ -101,18 +90,18 @@ function StickyNotes({
       {notes.filter(note => note.isSticky).map((note) => (
         <div key={note.id} className="note-item sticky-note" data-note-id={note.id}>
           {editingNoteId === note.id ? (
-            <div className={`note-edit ${isFullscreen ? 'fullscreen-overlay' : ''}`}>
+            <div className="note-edit">
               <div className="note-header">
                 <span className="note-date">{note.date}</span>
                 <div className="note-edit-actions">
-                  <button 
-                    className="save-note-btn" 
+                  <button
+                    className="save-note-btn"
                     onClick={saveEditNote}
                     title="Save"
                   >✓</button>
-                  <button 
-                    className="cancel-note-btn" 
-                    onClick={() => { setIsFullscreen(false); cancelEditNote(); }}
+                  <button
+                    className="cancel-note-btn"
+                    onClick={cancelEditNote}
                     title="Cancel"
                   >✕</button>
                 </div>
@@ -129,11 +118,6 @@ function StickyNotes({
                   rows="1"
                   autoFocus
                 />
-                <button
-                  className="fullscreen-toggle-btn"
-                  onClick={() => setIsFullscreen(!isFullscreen)}
-                  title={isFullscreen ? 'Exit full screen' : 'Full screen'}
-                >{isFullscreen ? '✕' : '⛶'}</button>
               </div>
             </div>
           ) : (

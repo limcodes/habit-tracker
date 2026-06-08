@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 
 function RegularNotes({ 
@@ -19,17 +19,6 @@ function RegularNotes({
 }) {
   const textareaRef = useRef(null);
   const noteTextRef = useRef(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  const exitFullscreen = useCallback(() => setIsFullscreen(false), []);
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isFullscreen) exitFullscreen();
-    };
-    if (isFullscreen) document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen, exitFullscreen]);
 
   // Auto-resize textarea to match content
   const autoResizeTextarea = () => {
@@ -40,12 +29,12 @@ function RegularNotes({
     }
   };
 
-  // Auto-resize when editing starts, content changes, or exiting fullscreen
+  // Auto-resize when editing starts or content changes
   useEffect(() => {
     if (editingNoteId && textareaRef.current) {
       autoResizeTextarea();
     }
-  }, [editingNoteId, editNoteText, isFullscreen]);
+  }, [editingNoteId, editNoteText]);
 
   // Handle checkbox toggle in view mode
   useEffect(() => {
@@ -53,11 +42,11 @@ function RegularNotes({
       if (e.target.classList.contains('todo-checkbox')) {
         e.stopPropagation(); // Prevent event bubbling
         
-        const lineIndex = parseInt(e.target.getAttribute('data-line'));
+        const lineIndex = parseInt(e.target.getAttribute('data-line'), 10);
         const noteElement = e.target.closest('[data-note-id]');
         const noteId = noteElement?.getAttribute('data-note-id');
-        
-        if (noteId) {
+
+        if (noteId && !Number.isNaN(lineIndex)) {
           const note = notes.find(n => n.id === noteId);
           if (note) {
             const lines = note.text.split('\n');
@@ -101,31 +90,36 @@ function RegularNotes({
   const filterNotesByPeriod = (notes) => {
     if (!displayedDays || displayedDays.length === 0) return notes.filter(note => !note.isSticky);
     
-    const periodDateStrings = displayedDays.map(day => format(day, 'yyyy-MM-dd'));
-    
-    return notes.filter(note => 
-      !note.isSticky && periodDateStrings.includes(note.date)
+    const periodDateStrings = new Set(displayedDays.map(day => format(day, 'yyyy-MM-dd')));
+
+    return notes.filter(note =>
+      !note.isSticky && typeof note.date === 'string' && periodDateStrings.has(note.date)
     );
   };
 
+  const visibleNotes = filterNotesByPeriod(notes);
+
   return (
     <div className="notes-list" ref={noteTextRef}>
+      {visibleNotes.length === 0 && (
+        <p className="state-message empty-state">No notes for these days yet.</p>
+      )}
       {/* Regular Notes */}
-      {filterNotesByPeriod(notes).map((note) => (
+      {visibleNotes.map((note) => (
         <div key={note.id} className="note-item regular-note" data-note-id={note.id}>
           {editingNoteId === note.id ? (
-            <div className={`note-edit ${isFullscreen ? 'fullscreen-overlay' : ''}`}>
+            <div className="note-edit">
               <div className="note-header">
                 <span className="note-date">{note.date}</span>
                 <div className="note-edit-actions">
-                  <button 
-                    className="save-note-btn" 
+                  <button
+                    className="save-note-btn"
                     onClick={saveEditNote}
                     title="Save"
                   >✓</button>
-                  <button 
-                    className="cancel-note-btn" 
-                    onClick={() => { setIsFullscreen(false); cancelEditNote(); }}
+                  <button
+                    className="cancel-note-btn"
+                    onClick={cancelEditNote}
                     title="Cancel"
                   >✕</button>
                 </div>
@@ -142,11 +136,6 @@ function RegularNotes({
                   rows="1"
                   autoFocus
                 />
-                <button
-                  className="fullscreen-toggle-btn"
-                  onClick={() => setIsFullscreen(!isFullscreen)}
-                  title={isFullscreen ? 'Exit full screen' : 'Full screen'}
-                >{isFullscreen ? '✕' : '⛶'}</button>
               </div>
             </div>
           ) : (

@@ -49,16 +49,19 @@ export const parseNoteText = (text, onCheckboxToggle) => {
       };
     }
     
-    // Apply other formatting to non-checkbox lines
+    // Apply other formatting to non-checkbox lines. Order matters: the
+    // double-marker patterns (**, __) must run before the single-marker
+    // italic pattern, otherwise `_..._` would consume the underscores of
+    // `__underline__` first.
     let formattedLine = line
       // Bold: **text**
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      // Italic: *text* or _text_
-      .replace(/(\*|_)(.*?)\1/g, '<em>$2</em>')
       // Underline: __text__
       .replace(/__(.*?)__/g, '<u>$1</u>')
       // Strikethrough: ~~text~~
-      .replace(/~~(.*?)~~/g, '<s>$1</s>');
+      .replace(/~~(.*?)~~/g, '<s>$1</s>')
+      // Italic: *text* or _text_
+      .replace(/(\*|_)(.*?)\1/g, '<em>$2</em>');
     
     return {
       type: 'text',

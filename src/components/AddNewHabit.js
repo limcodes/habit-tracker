@@ -7,7 +7,9 @@ function AddNewHabit({ newHabitName, setNewHabitName, addHabit }) {
         type="text"
         value={newHabitName}
         onChange={(e) => setNewHabitName(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') addHabit(); }}
         placeholder="Enter a new habit"
+        aria-label="New habit name"
       />
       <button onClick={addHabit}>Add Habit</button>
     </div>
