@@ -64,47 +64,34 @@ body {
   to { opacity: 1; }
 }
 
-/* ---------- Header ---------- */
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0;
-  padding: 13px clamp(16px, 2.5vw, 32px);
-  border-bottom: 1px solid var(--line-2);
-  background: transparent;
-}
-
-header h2 {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: var(--fs-lg);
-  letter-spacing: 0.02em;
-  color: var(--ink);
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.signout-btn {
+/* ---------- Fixed sign-out (bottom-right) ---------- */
+.signout-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
   color: var(--ink-soft);
+  cursor: pointer;
+  z-index: 50;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
-.signout-btn:hover {
+.signout-fab:hover {
   color: var(--ink);
+  border-color: var(--muted);
 }
 
-.signout-btn svg {
+.signout-fab svg {
   display: block;
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
 }
 
 /* ---------- Buttons (quiet, flat) ---------- */
@@ -126,21 +113,6 @@ header h2 {
 .habit-input button:hover,
 .notes-input > button:hover {
   background: #2A2825;
-}
-
-header button {
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-  padding: 6px 4px;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-header button:hover {
-  color: var(--ink);
 }
 
 /* ---------- State / empty / hero ---------- */
@@ -866,17 +838,6 @@ header button:hover {
 
 /* ---------- Responsive ---------- */
 @media screen and (max-width: 768px) {
-  header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .user-info {
-    width: 100%;
-    justify-content: space-between;
-  }
-
   .habit-container {
     flex-direction: column;
     align-items: stretch;
