@@ -15,7 +15,7 @@ import TodoList from './components/TodoList';
 
 // Import utilities
 import { parseNoteText } from './utils/textFormatter';
-import { isTodoVisible } from './utils/todoUtils';
+import { isTodoVisible, promoteDueTomorrowTodos } from './utils/todoUtils';
 
 // Count consecutive completed days ending at the most recent entry. Exported
 // for unit testing. Does not mutate its input.
@@ -202,7 +202,20 @@ function App() {
           await Promise.all(
             stale.map(t => deleteDoc(doc(db, 'users', user.uid, 'todos', t.id)))
           );
-          setTodos(fetchedTodos.filter(t => isTodoVisible(t, nowMs)));
+          const visibleTodos = fetchedTodos.filter(t => isTodoVisible(t, nowMs));
+          // Promote any Tomorrow todos whose day has arrived into Today.
+          const todayStr = format(new Date(), 'yyyy-MM-dd');
+          const { todos: promotedTodos, updates } = promoteDueTomorrowTodos(visibleTodos, todayStr);
+          await Promise.all(
+            updates.map(u =>
+              updateDoc(doc(db, 'users', user.uid, 'todos', u.id), {
+                bucket: u.bucket,
+                order: u.order,
+                promoteOn: u.promoteOn,
+              })
+            )
+          );
+          setTodos(promotedTodos);
         } catch (error) {
           console.error('Error fetching todos:', error);
         } finally {
@@ -391,6 +404,7 @@ function App() {
     try {
       const userTodosRef = collection(db, 'users', user.uid, 'todos');
       const order = todos.filter(t => t.bucket === activeTodoBucket && !t.completed).length;
+      const tomorrowStr = format(addDays(today, 1), 'yyyy-MM-dd');
       const newTodoData = {
         text,
         bucket: activeTodoBucket,
@@ -398,6 +412,8 @@ function App() {
         completedAt: null,
         createdAt: Timestamp.now(),
         order,
+        // Tomorrow todos record the date they should surface in Today.
+        promoteOn: activeTodoBucket === 'tomorrow' ? tomorrowStr : null,
       };
       const docRef = await addDoc(userTodosRef, newTodoData);
       setTodos([...todos, { id: docRef.id, ...newTodoData }]);
@@ -463,10 +479,12 @@ function App() {
     const todo = todos.find(t => t.id === todoId);
     if (!todo || todo.bucket === bucket) return;
     const order = todos.filter(t => t.bucket === bucket && !t.completed).length;
+    // Moving into Tomorrow sets its promote date; moving elsewhere clears it.
+    const promoteOn = bucket === 'tomorrow' ? format(addDays(today, 1), 'yyyy-MM-dd') : null;
     try {
       const todoRef = doc(db, 'users', user.uid, 'todos', todoId);
-      await updateDoc(todoRef, { bucket, order });
-      setTodos(todos.map(t => t.id === todoId ? { ...t, bucket, order } : t));
+      await updateDoc(todoRef, { bucket, order, promoteOn });
+      setTodos(todos.map(t => t.id === todoId ? { ...t, bucket, order, promoteOn } : t));
     } catch (error) {
       console.error('Error moving todo:', error);
     }

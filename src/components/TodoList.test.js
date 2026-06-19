@@ -26,10 +26,11 @@ const todo = (over) => ({ id: 'x', text: 'task', bucket: 'today', completed: fal
 
 beforeEach(() => jest.clearAllMocks());
 
-test('renders the three bucket tabs', () => {
+test('renders the four bucket tabs', () => {
   render(<TodoList {...baseProps} />);
   expect(screen.getByRole('tab', { name: 'Inbox' })).toBeInTheDocument();
   expect(screen.getByRole('tab', { name: 'Today' })).toBeInTheDocument();
+  expect(screen.getByRole('tab', { name: 'Tomorrow' })).toBeInTheDocument();
   expect(screen.getByRole('tab', { name: 'Anytime' })).toBeInTheDocument();
 });
 

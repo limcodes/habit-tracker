@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { isTodoVisible, sortBucketTodos, TODO_BUCKETS } from '../utils/todoUtils';
 
-const BUCKET_LABELS = { inbox: 'Inbox', today: 'Today', anytime: 'Anytime' };
+const BUCKET_LABELS = { inbox: 'Inbox', today: 'Today', tomorrow: 'Tomorrow', anytime: 'Anytime' };
 
 function TodoList({
   todos,
