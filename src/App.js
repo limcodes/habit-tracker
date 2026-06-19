@@ -11,9 +11,11 @@ import AddNewHabit from './components/AddNewHabit';
 import AddNotes from './components/AddNotes';
 import RegularNotes from './components/RegularNotes';
 import StickyNotes from './components/StickyNotes';
+import TodoList from './components/TodoList';
 
 // Import utilities
 import { parseNoteText } from './utils/textFormatter';
+import { isTodoVisible } from './utils/todoUtils';
 
 // Count consecutive completed days ending at the most recent entry. Exported
 // for unit testing. Does not mutate its input.
@@ -86,6 +88,12 @@ function App() {
   const [stickyNoteId, setStickyNoteId] = useState(null);
   const [habitsLoading, setHabitsLoading] = useState(false);
   const [notesLoading, setNotesLoading] = useState(false);
+  const [todos, setTodos] = useState([]);
+  const [newTodoText, setNewTodoText] = useState('');
+  const [activeTodoBucket, setActiveTodoBucket] = useState('today');
+  const [editingTodoId, setEditingTodoId] = useState(null);
+  const [editTodoText, setEditTodoText] = useState('');
+  const [todosLoading, setTodosLoading] = useState(false);
   const habitsLoaded = React.useRef(false);
 
   const goToPreviousWeek = () => {
@@ -177,6 +185,34 @@ function App() {
       }
     };
     fetchNotes();
+  }, [user]);
+
+  // Fetch todos when user changes; lazily delete completed todos older than the
+  // 7-day visibility window so the collection stays tidy.
+  useEffect(() => {
+    const fetchTodos = async () => {
+      if (user) {
+        setTodosLoading(true);
+        try {
+          const userTodosRef = collection(db, 'users', user.uid, 'todos');
+          const querySnapshot = await getDocs(userTodosRef);
+          const fetchedTodos = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          const nowMs = Date.now();
+          const stale = fetchedTodos.filter(t => !isTodoVisible(t, nowMs));
+          await Promise.all(
+            stale.map(t => deleteDoc(doc(db, 'users', user.uid, 'todos', t.id)))
+          );
+          setTodos(fetchedTodos.filter(t => isTodoVisible(t, nowMs)));
+        } catch (error) {
+          console.error('Error fetching todos:', error);
+        } finally {
+          setTodosLoading(false);
+        }
+      } else {
+        setTodos([]);
+      }
+    };
+    fetchTodos();
   }, [user]);
 
   const addHabit = () => {
@@ -372,6 +408,109 @@ function App() {
     }
   };
 
+  const addTodo = async () => {
+    if (!user) return;
+    const text = newTodoText.trim();
+    if (!text) return;
+    try {
+      const userTodosRef = collection(db, 'users', user.uid, 'todos');
+      const order = todos.filter(t => t.bucket === activeTodoBucket && !t.completed).length;
+      const newTodoData = {
+        text,
+        bucket: activeTodoBucket,
+        completed: false,
+        completedAt: null,
+        createdAt: Timestamp.now(),
+        order,
+      };
+      const docRef = await addDoc(userTodosRef, newTodoData);
+      setTodos([...todos, { id: docRef.id, ...newTodoData }]);
+      setNewTodoText('');
+    } catch (error) {
+      console.error('Error adding todo:', error);
+    }
+  };
+
+  const toggleTodoComplete = async (todoId) => {
+    if (!user) return;
+    const todo = todos.find(t => t.id === todoId);
+    if (!todo) return;
+    const completed = !todo.completed;
+    const completedAt = completed ? Timestamp.now() : null;
+    try {
+      const todoRef = doc(db, 'users', user.uid, 'todos', todoId);
+      await updateDoc(todoRef, { completed, completedAt });
+      setTodos(todos.map(t => t.id === todoId ? { ...t, completed, completedAt } : t));
+    } catch (error) {
+      console.error('Error toggling todo:', error);
+    }
+  };
+
+  const startEditTodo = (todo) => {
+    setEditingTodoId(todo.id);
+    setEditTodoText(todo.text);
+  };
+
+  const saveEditTodo = async () => {
+    if (!user) return;
+    const text = editTodoText.trim();
+    if (!text) return;
+    try {
+      const todoRef = doc(db, 'users', user.uid, 'todos', editingTodoId);
+      await updateDoc(todoRef, { text });
+      setTodos(todos.map(t => t.id === editingTodoId ? { ...t, text } : t));
+      setEditingTodoId(null);
+      setEditTodoText('');
+    } catch (error) {
+      console.error('Error updating todo:', error);
+    }
+  };
+
+  const cancelEditTodo = () => {
+    setEditingTodoId(null);
+    setEditTodoText('');
+  };
+
+  const deleteTodo = async (todoId) => {
+    if (!user) return;
+    try {
+      const todoRef = doc(db, 'users', user.uid, 'todos', todoId);
+      await deleteDoc(todoRef);
+      setTodos(todos.filter(t => t.id !== todoId));
+    } catch (error) {
+      console.error('Error deleting todo:', error);
+    }
+  };
+
+  const moveTodoToBucket = async (todoId, bucket) => {
+    if (!user) return;
+    const todo = todos.find(t => t.id === todoId);
+    if (!todo || todo.bucket === bucket) return;
+    const order = todos.filter(t => t.bucket === bucket && !t.completed).length;
+    try {
+      const todoRef = doc(db, 'users', user.uid, 'todos', todoId);
+      await updateDoc(todoRef, { bucket, order });
+      setTodos(todos.map(t => t.id === todoId ? { ...t, bucket, order } : t));
+    } catch (error) {
+      console.error('Error moving todo:', error);
+    }
+  };
+
+  const reorderTodos = async (bucket, orderedIds) => {
+    if (!user) return;
+    const orderMap = new Map(orderedIds.map((id, index) => [id, index]));
+    setTodos(todos.map(t => orderMap.has(t.id) ? { ...t, order: orderMap.get(t.id) } : t));
+    try {
+      await Promise.all(
+        orderedIds.map((id, index) =>
+          updateDoc(doc(db, 'users', user.uid, 'todos', id), { order: index })
+        )
+      );
+    } catch (error) {
+      console.error('Error reordering todos:', error);
+    }
+  };
+
   const toggleStickyNote = async (noteId) => {
     if (!user) return;
     try {
@@ -452,7 +591,26 @@ function App() {
                 addHabit={addHabit}
               />
             </div>
-            <StickyNotes 
+            <TodoList
+              todos={todos}
+              todosLoading={todosLoading}
+              activeTodoBucket={activeTodoBucket}
+              setActiveTodoBucket={setActiveTodoBucket}
+              newTodoText={newTodoText}
+              setNewTodoText={setNewTodoText}
+              addTodo={addTodo}
+              toggleTodoComplete={toggleTodoComplete}
+              editingTodoId={editingTodoId}
+              editTodoText={editTodoText}
+              setEditTodoText={setEditTodoText}
+              startEditTodo={startEditTodo}
+              saveEditTodo={saveEditTodo}
+              cancelEditTodo={cancelEditTodo}
+              deleteTodo={deleteTodo}
+              moveTodoToBucket={moveTodoToBucket}
+              reorderTodos={reorderTodos}
+            />
+            <StickyNotes
               notes={notes}
               editingNoteId={editingNoteId}
               selectedNoteDate={selectedNoteDate}
