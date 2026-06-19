@@ -14,24 +14,8 @@ describe('parseNoteText formatting', () => {
     expect(parseNoteText('~~s~~')).toContain('<s>s</s>');
   });
 
-  test('renders unchecked and checked checkboxes with data-line', () => {
-    const unchecked = parseNoteText('[] task one');
-    expect(unchecked).toContain('type="checkbox"');
-    expect(unchecked).toContain('data-line="0"');
-    expect(unchecked).not.toContain('checked');
-    expect(unchecked).toContain('task one');
-
-    const checked = parseNoteText('[x] done');
-    expect(checked).toContain('checked');
-    expect(checked).toContain('todo-checked');
-  });
-
-  test('consecutive checkboxes are not separated by <br>, mixed lines are', () => {
-    const twoBoxes = parseNoteText('[] a\n[] b');
-    expect(twoBoxes).not.toContain('<br>');
-
-    const mixed = parseNoteText('hello\n[] a');
-    expect(mixed).toContain('<br>');
+  test('separates lines with <br>', () => {
+    expect(parseNoteText('a\nb')).toBe('a<br>b');
   });
 });
 
@@ -46,12 +30,6 @@ describe('parseNoteText XSS safety', () => {
     const out = parseNoteText('<script>alert(1)</script>');
     expect(out).not.toContain('<script>');
     expect(out).toContain('&lt;script&gt;');
-  });
-
-  test('escapes HTML inside checkbox task text', () => {
-    const out = parseNoteText('[] <img src=x onerror=alert(1)>');
-    expect(out).not.toContain('<img');
-    expect(out).toContain('&lt;img');
   });
 
   test('escapes quotes and ampersands', () => {

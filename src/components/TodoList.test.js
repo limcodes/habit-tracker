@@ -86,6 +86,6 @@ test('completed todos render with the completed class and stay (within 7 days)',
 test('editing a todo shows save/cancel and an input', () => {
   render(<TodoList {...baseProps} todos={[todo({ id: 'a', text: 'task' })]} editingTodoId="a" editTodoText="task" />);
   expect(screen.getByDisplayValue('task')).toBeInTheDocument();
-  fireEvent.click(screen.getByTitle('Save'));
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
   expect(baseProps.saveEditTodo).toHaveBeenCalled();
 });

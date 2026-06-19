@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { format } from 'date-fns';
 import RegularNotes from './RegularNotes';
 import { parseNoteText } from '../utils/textFormatter';
@@ -19,7 +19,6 @@ const baseProps = {
   startEditNote: jest.fn(),
   deleteNote: jest.fn(),
   toggleStickyNote: jest.fn(),
-  updateNoteCheckbox: jest.fn(),
   parseNoteText,
 };
 
@@ -49,13 +48,15 @@ test('ignores notes with a missing/malformed date', () => {
   expect(screen.getByText(/No notes for these days/)).toBeInTheDocument();
 });
 
-test('toggling a rendered checkbox calls updateNoteCheckbox with the flipped line', () => {
-  const notes = [{ id: 'n1', text: '[] task', date: dayStr, isSticky: false }];
+test('action buttons have accessible labels', () => {
+  const notes = [{ id: 'n1', text: 'a note', date: dayStr, isSticky: false }];
+  render(<RegularNotes {...baseProps} notes={notes} />);
+  expect(screen.getByLabelText('Delete note')).toBeInTheDocument();
+  expect(screen.getByLabelText('Pin note')).toBeInTheDocument();
+});
+
+test('renders note text with markdown formatting', () => {
+  const notes = [{ id: 'n1', text: '**bold**', date: dayStr, isSticky: false }];
   const { container } = render(<RegularNotes {...baseProps} notes={notes} />);
-  const checkbox = container.querySelector('.todo-checkbox');
-  expect(checkbox).toBeTruthy();
-  // Fire change directly (deterministic regardless of jsdom click defaults).
-  checkbox.checked = true;
-  fireEvent.change(checkbox);
-  expect(baseProps.updateNoteCheckbox).toHaveBeenCalledWith('n1', '[x] task');
+  expect(container.querySelector('.note-text strong')).toBeTruthy();
 });

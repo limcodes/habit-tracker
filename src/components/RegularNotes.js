@@ -14,11 +14,9 @@ function RegularNotes({
   startEditNote,
   deleteNote,
   toggleStickyNote,
-  updateNoteCheckbox,
   parseNoteText
 }) {
   const textareaRef = useRef(null);
-  const noteTextRef = useRef(null);
 
   // Auto-resize textarea to match content
   const autoResizeTextarea = () => {
@@ -36,56 +34,6 @@ function RegularNotes({
     }
   }, [editingNoteId, editNoteText]);
 
-  // Handle checkbox toggle in view mode
-  useEffect(() => {
-    const handleCheckboxChange = (e) => {
-      if (e.target.classList.contains('todo-checkbox')) {
-        e.stopPropagation(); // Prevent event bubbling
-        
-        const lineIndex = parseInt(e.target.getAttribute('data-line'), 10);
-        const noteElement = e.target.closest('[data-note-id]');
-        const noteId = noteElement?.getAttribute('data-note-id');
-
-        if (noteId && !Number.isNaN(lineIndex)) {
-          const note = notes.find(n => n.id === noteId);
-          if (note) {
-            const lines = note.text.split('\n');
-            if (lines[lineIndex] !== undefined) {
-              // Toggle checkbox state
-              if (e.target.checked) {
-                lines[lineIndex] = lines[lineIndex].replace(/^\[\]\s+/, '[x] ');
-              } else {
-                lines[lineIndex] = lines[lineIndex].replace(/^\[x\]\s+/i, '[] ');
-              }
-              
-              // Update the note directly without entering edit mode
-              const updatedText = lines.join('\n');
-              updateNoteCheckbox(noteId, updatedText);
-            }
-          }
-        }
-      }
-    };
-
-    const handleCheckboxClick = (e) => {
-      if (e.target.classList.contains('todo-checkbox') || e.target.closest('.todo-item')) {
-        e.stopPropagation(); // Prevent double-click edit from triggering
-      }
-    };
-
-    const noteContainer = noteTextRef.current;
-    if (noteContainer) {
-      noteContainer.addEventListener('change', handleCheckboxChange);
-      noteContainer.addEventListener('click', handleCheckboxClick, true);
-      noteContainer.addEventListener('dblclick', handleCheckboxClick, true);
-      return () => {
-        noteContainer.removeEventListener('change', handleCheckboxChange);
-        noteContainer.removeEventListener('click', handleCheckboxClick, true);
-        noteContainer.removeEventListener('dblclick', handleCheckboxClick, true);
-      };
-    }
-  }, [notes, updateNoteCheckbox]);
-
   // Filter notes to only show those within the displayed period
   const filterNotesByPeriod = (notes) => {
     if (!displayedDays || displayedDays.length === 0) return notes.filter(note => !note.isSticky);
@@ -100,7 +48,7 @@ function RegularNotes({
   const visibleNotes = filterNotesByPeriod(notes);
 
   return (
-    <div className="notes-list" ref={noteTextRef}>
+    <div className="notes-list">
       {visibleNotes.length === 0 && (
         <p className="state-message empty-state">No notes for these days yet.</p>
       )}
@@ -143,16 +91,20 @@ function RegularNotes({
               <div className="note-header">
                 <span className="note-date">{note.date}</span>
                 <div className="note-actions hover-actions">
-                  <button 
-                    className="delete-note-btn" 
+                  <button
+                    className="delete-note-btn"
+                    aria-label="Delete note"
+                    title="Delete note"
                     onClick={() => {
                       if (window.confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
                         deleteNote(note.id);
                       }
                     }}
                   >🗑️</button>
-                  <button 
-                    className="sticky-note-btn" 
+                  <button
+                    className="sticky-note-btn"
+                    aria-label={note.isSticky ? 'Unpin note' : 'Pin note'}
+                    title={note.isSticky ? 'Unpin note' : 'Pin note'}
                     onClick={() => toggleStickyNote(note.id)}
                   >{note.isSticky ? '📌' : '📍'}</button>
                 </div>

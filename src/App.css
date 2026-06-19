@@ -747,34 +747,6 @@ body {
   line-height: 1.6;
 }
 
-/* ---------- Todo checkboxes ---------- */
-.todo-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 5px 0;
-  cursor: pointer;
-  user-select: none;
-}
-
-.todo-checkbox {
-  cursor: pointer;
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: var(--accent);
-}
-
-.todo-text {
-  flex: 1;
-}
-
-.todo-checked {
-  text-decoration: line-through;
-  color: var(--muted);
-}
-
 /* ---------- Drag & drop (subtle) ---------- */
 .habit-table tbody tr {
   cursor: move;
@@ -898,13 +870,15 @@ body {
   background: var(--accent-tint);
 }
 
-/* Add-todo row: borderless underline input + flat dark button (= Add Habit) */
+/* Add-todo row: borderless underline input + flat dark button (= Add Habit).
+   Sits below the list, pushed to the right edge. */
 .todo-input {
   display: flex;
   align-items: center;
   width: 100%;
   max-width: 440px;
-  margin-bottom: 18px;
+  margin-left: auto;
+  margin-top: 18px;
 }
 
 .todo-input input {

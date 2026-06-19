@@ -120,9 +120,11 @@ function HabitsTable({
               ) : (
                 <div className="habit-name">
                   <span onClick={() => startEditHabit(habit)}>{habit.name}</span>
-                  <button 
-                    className="delete-habit-btn hover-delete" 
+                  <button
+                    className="delete-habit-btn hover-delete"
                     onClick={() => deleteHabit(habit.id)}
+                    aria-label={`Delete habit: ${habit.name}`}
+                    title="Delete habit"
                   >✕</button>
                 </div>
               )}

@@ -1,70 +1,52 @@
-# Getting Started with Create React App
+# Habits Log
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A calm, single-user habit and daily-notes tracker. Track habits on a rolling
+weekly grid (tap a day to cycle empty → done → skipped), keep dated notes with
+lightweight markdown and checklists, pin sticky notes, and watch your streaks.
 
-## Available Scripts
+Live at **[habitslog.net](https://habitslog.net)**.
 
-In the project directory, you can run:
+## Stack
 
-### `npm start`
+- **React** (Create React App) — single-page app, no router
+- **Firebase** — Google authentication + Cloud Firestore (per-user data under
+  `users/{uid}/…`, locked down by `firestore.rules`)
+- Deployed to **GitHub Pages** via `gh-pages`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+See [`CLAUDE.md`](./CLAUDE.md) for the architecture overview (data model, the
+debounced diff-based habits save, the notes model, and the date/streak logic).
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Setup
 
-### `npm test`
+Firebase config is read from environment variables (the app validates them at
+startup). Create a `.env` in the project root:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+REACT_APP_FIREBASE_API_KEY=...
+REACT_APP_FIREBASE_AUTH_DOMAIN=...
+REACT_APP_FIREBASE_PROJECT_ID=...
+REACT_APP_FIREBASE_STORAGE_BUCKET=...
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=...
+REACT_APP_FIREBASE_APP_ID=...
+```
 
-### `npm run build`
+## Commands
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm start        # run the dev server at http://localhost:3000
+npm test         # run the test suite (Jest + React Testing Library)
+npm run build    # production build to build/
+npm run deploy   # build, then publish build/ to GitHub Pages (habitslog.net)
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Run a single test file once:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+npm test -- --watchAll=false src/App.test.js
+```
 
-### `npm run eject`
+## Deployment
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+`npm run deploy` builds and pushes `build/` to the `gh-pages` branch.
+`public/CNAME` carries the `habitslog.net` custom domain into the build, so the
+domain is preserved on each deploy.

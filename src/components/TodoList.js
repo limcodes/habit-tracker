@@ -107,18 +107,6 @@ function TodoList({
         ))}
       </div>
 
-      <div className="todo-input">
-        <input
-          type="text"
-          value={newTodoText}
-          onChange={(e) => setNewTodoText(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') addTodo(); }}
-          placeholder="Add a todo"
-          aria-label="New todo"
-        />
-        <button onClick={addTodo}>Add Todo</button>
-      </div>
-
       {todosLoading && todos.length === 0 ? (
         <p className="state-message" role="status">Loading your todos…</p>
       ) : bucketTodos.length === 0 ? (
@@ -154,8 +142,8 @@ function TodoList({
                       autoFocus
                     />
                     <div className="todo-edit-actions">
-                      <button onClick={saveEditTodo} title="Save">✓</button>
-                      <button onClick={cancelEditTodo} title="Cancel">✕</button>
+                      <button onClick={saveEditTodo}>Save</button>
+                      <button onClick={cancelEditTodo}>Cancel</button>
                     </div>
                   </div>
                 ) : (
@@ -181,6 +169,18 @@ function TodoList({
           })}
         </ul>
       )}
+
+      <div className="todo-input">
+        <input
+          type="text"
+          value={newTodoText}
+          onChange={(e) => setNewTodoText(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') addTodo(); }}
+          placeholder="Add a todo"
+          aria-label="New todo"
+        />
+        <button onClick={addTodo}>Add Todo</button>
+      </div>
     </div>
   );
 }
