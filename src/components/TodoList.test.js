@@ -66,9 +66,13 @@ test('delete button calls deleteTodo', () => {
   expect(baseProps.deleteTodo).toHaveBeenCalledWith('a');
 });
 
-test('bucket dropdown moves the todo', () => {
+test('dragging a todo onto another bucket tab moves it', () => {
   render(<TodoList {...baseProps} todos={[todo({ id: 'a', text: 'task', bucket: 'today' })]} />);
-  fireEvent.change(screen.getByRole('combobox', { name: /Move "task"/ }), { target: { value: 'anytime' } });
+  const item = screen.getByText('task').closest('.todo-item');
+  fireEvent.dragStart(item);
+  const anytimeTab = screen.getByRole('tab', { name: 'Anytime' });
+  fireEvent.dragOver(anytimeTab);
+  fireEvent.drop(anytimeTab);
   expect(baseProps.moveTodoToBucket).toHaveBeenCalledWith('a', 'anytime');
 });
 

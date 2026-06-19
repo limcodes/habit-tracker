@@ -96,6 +96,7 @@ body {
 
 /* ---------- Buttons (quiet, flat) ---------- */
 .habit-input button,
+.todo-input > button,
 .notes-input > button {
   padding: 10px 20px;
   color: var(--surface);
@@ -111,6 +112,7 @@ body {
 }
 
 .habit-input button:hover,
+.todo-input > button:hover,
 .notes-input > button:hover {
   background: #2A2825;
 }
@@ -852,64 +854,83 @@ body {
   }
 }
 
-/* Todo section */
+
+/* ---------- Todo section (Muji — matches habit grid language) ---------- */
 .todo-section {
-  margin-top: 24px;
+  margin-bottom: 28px;
 }
 
+/* Tabs: quiet underline bar; the active bucket carries the sage accent.
+   Tabs double as drop targets — drag a todo onto one to move its bucket. */
 .todo-tabs {
   display: flex;
-  gap: 4px;
-  margin-bottom: 12px;
+  gap: 28px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
 }
 
 .todo-tab {
-  flex: 1;
-  padding: 6px 10px;
+  padding: 8px 2px;
+  margin-bottom: -1px;
   background: transparent;
-  border: 1px solid #e5e3df;
-  border-radius: 6px;
-  color: #8a8780;
-  font-size: 0.85rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: var(--fs-base);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
 .todo-tab:hover {
-  border-color: #cfccc5;
-  color: #5a5852;
+  color: var(--ink);
 }
 
 .todo-tab.active {
-  background: #5a5852;
-  border-color: #5a5852;
-  color: #faf9f7;
+  color: var(--ink);
+  border-bottom-color: var(--accent);
 }
 
+.todo-tab.drag-over {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: var(--accent-tint);
+}
+
+/* Add-todo row: borderless underline input + flat dark button (= Add Habit) */
 .todo-input {
   display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
+  align-items: center;
+  width: 100%;
+  max-width: 440px;
+  margin-bottom: 18px;
 }
 
 .todo-input input {
-  flex: 1;
-  padding: 8px 10px;
-  border: 1px solid #e5e3df;
-  border-radius: 6px;
-  font-size: 0.9rem;
-}
-
-.todo-input button {
-  padding: 8px 14px;
-  background: #5a5852;
-  color: #faf9f7;
+  flex-grow: 1;
+  padding: 10px 2px;
+  margin-right: 16px;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
+  border-bottom: 1px solid var(--line-2);
+  border-radius: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  background: transparent;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s ease;
 }
 
+.todo-input input::placeholder {
+  color: var(--muted);
+}
+
+.todo-input input:focus {
+  border-bottom-color: var(--accent);
+}
+
+/* List rows: borderless, draggable, hover whisper (= habit rows) */
 .todo-list {
   list-style: none;
   margin: 0;
@@ -919,85 +940,126 @@ body {
 .todo-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 6px;
-  border-bottom: 1px solid #f0eee9;
+  gap: 10px;
+  position: relative;
+  padding: 8px 25px 8px 0;
+  cursor: move;
+  transition: background 0.2s ease;
 }
 
 .todo-item.dragging {
-  opacity: 0.4;
+  opacity: 0.45;
 }
 
 .todo-item.drag-over {
-  border-top: 2px solid #5a5852;
+  box-shadow: inset 0 2px 0 0 var(--accent);
+}
+
+@media (hover: hover) {
+  .todo-item:hover {
+    background: rgba(58, 56, 51, 0.015);
+  }
 }
 
 .todo-check {
   flex-shrink: 0;
+  width: 16px;
+  height: 16px;
   cursor: pointer;
+  accent-color: var(--accent);
 }
 
+/* Todo text matches the habit name: weight 500, ink, sage on hover */
 .todo-text {
   flex: 1;
-  cursor: text;
-  font-size: 0.9rem;
-  color: #3a3833;
-  word-break: break-word;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: var(--fs-base);
+  color: var(--ink);
+  overflow-wrap: break-word;
+  transition: color 0.2s;
+}
+
+.todo-text:hover {
+  color: var(--accent);
 }
 
 .todo-item.completed .todo-text {
   text-decoration: line-through;
-  color: #b4b1aa;
+  color: var(--muted);
 }
 
-.todo-bucket-select {
-  flex-shrink: 0;
-  padding: 2px 4px;
-  border: 1px solid #e5e3df;
-  border-radius: 4px;
-  background: #faf9f7;
-  color: #8a8780;
-  font-size: 0.75rem;
-  cursor: pointer;
-}
-
+/* Delete glyph mirrors .delete-habit-btn (hidden until row hover) */
 .delete-todo-btn {
-  flex-shrink: 0;
-  background: transparent;
+  position: absolute;
+  right: -4px;
+  background: none;
   border: none;
-  color: #b4b1aa;
+  color: var(--muted);
   cursor: pointer;
-  font-size: 0.85rem;
-  padding: 2px 6px;
+  font-size: var(--icon);
+  line-height: 1;
+  transition: opacity 0.2s, color 0.2s;
 }
 
 .delete-todo-btn:hover {
-  color: #c0392b;
+  color: var(--ink);
 }
 
+@media (hover: hover) {
+  .delete-todo-btn {
+    opacity: 0;
+  }
+  .todo-item:hover .delete-todo-btn {
+    opacity: 1;
+  }
+}
+
+/* Inline edit mirrors .habit-edit */
 .todo-edit {
   display: flex;
+  flex-direction: column;
   gap: 8px;
   width: 100%;
 }
 
 .todo-edit input {
-  flex: 1;
-  padding: 6px 8px;
-  border: 1px solid #cfccc5;
-  border-radius: 6px;
+  padding: 7px 2px;
+  border: none;
+  border-bottom: 1px solid var(--line-2);
+  border-radius: 0;
+  font-family: var(--font-sans);
   font-size: 0.9rem;
+  background: transparent;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.todo-edit input:focus {
+  border-bottom-color: var(--accent);
 }
 
 .todo-edit-actions {
   display: flex;
-  gap: 4px;
+  gap: 14px;
 }
 
 .todo-edit-actions button {
-  background: transparent;
-  border: 1px solid #e5e3df;
-  border-radius: 6px;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  border-radius: 0;
   cursor: pointer;
-  padding: 4px 8px;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+}
+
+.todo-edit-actions button:first-child {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.todo-edit-actions button:last-child {
+  color: var(--muted);
 }

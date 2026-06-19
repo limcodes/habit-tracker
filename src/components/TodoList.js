@@ -22,49 +22,71 @@ function TodoList({
   moveTodoToBucket,
   reorderTodos,
 }) {
+  const [draggedId, setDraggedId] = useState(null);
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [dragOverBucket, setDragOverBucket] = useState(null);
 
   const nowMs = Date.now();
   const bucketTodos = sortBucketTodos(
     todos.filter((t) => t.bucket === activeTodoBucket && isTodoVisible(t, nowMs))
   );
   // Drag-reorder applies only to the incomplete todos in this bucket; their
-  // position in this array is the index used by the drag handlers.
+  // position in this array is the index used by the reorder handlers.
   const incompleteTodos = bucketTodos.filter((t) => !t.completed);
 
-  const handleDragStart = (e, index) => {
-    setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
+  const clearDragState = () => {
+    setDraggedId(null);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    setDragOverBucket(null);
   };
 
-  const handleDragOver = (e, index) => {
+  const handleDragStart = (e, todo, index) => {
+    setDraggedId(todo.id);
+    setDraggedIndex(index);
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+  };
+
+  // --- Reorder within the active bucket (drop onto a list row) ---
+  const handleRowDragOver = (e, index) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     if (index !== draggedIndex) setDragOverIndex(index);
   };
 
-  const handleDragLeave = () => setDragOverIndex(null);
+  const handleRowDragLeave = () => setDragOverIndex(null);
 
-  const handleDrop = (e, dropIndex) => {
+  const handleRowDrop = (e, dropIndex) => {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === dropIndex) {
-      setDraggedIndex(null);
-      setDragOverIndex(null);
+      clearDragState();
       return;
     }
     const reordered = [...incompleteTodos];
     const [moved] = reordered.splice(draggedIndex, 1);
     reordered.splice(dropIndex, 0, moved);
     reorderTodos(activeTodoBucket, reordered.map((t) => t.id));
-    setDraggedIndex(null);
-    setDragOverIndex(null);
+    clearDragState();
   };
 
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-    setDragOverIndex(null);
+  // --- Move to another bucket (drop onto a tab) ---
+  const handleTabDragOver = (e, bucket) => {
+    if (draggedId === null) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    setDragOverBucket(bucket);
   };
+
+  const handleTabDragLeave = () => setDragOverBucket(null);
+
+  const handleTabDrop = (e, bucket) => {
+    e.preventDefault();
+    if (draggedId !== null) moveTodoToBucket(draggedId, bucket);
+    clearDragState();
+  };
+
+  const handleDragEnd = () => clearDragState();
 
   return (
     <div className="todo-section">
@@ -74,8 +96,11 @@ function TodoList({
             key={bucket}
             role="tab"
             aria-selected={activeTodoBucket === bucket}
-            className={`todo-tab ${activeTodoBucket === bucket ? 'active' : ''}`}
+            className={`todo-tab ${activeTodoBucket === bucket ? 'active' : ''} ${dragOverBucket === bucket ? 'drag-over' : ''}`}
             onClick={() => setActiveTodoBucket(bucket)}
+            onDragOver={(e) => handleTabDragOver(e, bucket)}
+            onDragLeave={handleTabDragLeave}
+            onDrop={(e) => handleTabDrop(e, bucket)}
           >
             {BUCKET_LABELS[bucket]}
           </button>
@@ -91,7 +116,7 @@ function TodoList({
           placeholder="Add a todo"
           aria-label="New todo"
         />
-        <button onClick={addTodo}>Add</button>
+        <button onClick={addTodo}>Add Todo</button>
       </div>
 
       {todosLoading && todos.length === 0 ? (
@@ -103,17 +128,17 @@ function TodoList({
           {bucketTodos.map((t) => {
             const incompleteIndex = incompleteTodos.indexOf(t); // -1 for completed
             const isDraggable = !t.completed && editingTodoId !== t.id;
-            const isDragging = isDraggable && draggedIndex === incompleteIndex;
+            const isDragging = isDraggable && draggedId === t.id;
             const isDragOver = isDraggable && dragOverIndex === incompleteIndex;
             return (
               <li
                 key={t.id}
                 className={`todo-item ${t.completed ? 'completed' : ''} ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''}`}
                 draggable={isDraggable}
-                onDragStart={isDraggable ? (e) => handleDragStart(e, incompleteIndex) : undefined}
-                onDragOver={isDraggable ? (e) => handleDragOver(e, incompleteIndex) : undefined}
-                onDragLeave={isDraggable ? handleDragLeave : undefined}
-                onDrop={isDraggable ? (e) => handleDrop(e, incompleteIndex) : undefined}
+                onDragStart={isDraggable ? (e) => handleDragStart(e, t, incompleteIndex) : undefined}
+                onDragOver={isDraggable ? (e) => handleRowDragOver(e, incompleteIndex) : undefined}
+                onDragLeave={isDraggable ? handleRowDragLeave : undefined}
+                onDrop={isDraggable ? (e) => handleRowDrop(e, incompleteIndex) : undefined}
                 onDragEnd={isDraggable ? handleDragEnd : undefined}
               >
                 {editingTodoId === t.id ? (
@@ -143,18 +168,8 @@ function TodoList({
                       aria-label={`Mark "${t.text}" ${t.completed ? 'incomplete' : 'complete'}`}
                     />
                     <span className="todo-text" onClick={() => startEditTodo(t)}>{t.text}</span>
-                    <select
-                      className="todo-bucket-select"
-                      value={t.bucket}
-                      onChange={(e) => moveTodoToBucket(t.id, e.target.value)}
-                      aria-label={`Move "${t.text}" to another list`}
-                    >
-                      {TODO_BUCKETS.map((b) => (
-                        <option key={b} value={b}>{BUCKET_LABELS[b]}</option>
-                      ))}
-                    </select>
                     <button
-                      className="delete-todo-btn hover-delete"
+                      className="delete-todo-btn"
                       onClick={() => deleteTodo(t.id)}
                       aria-label={`Delete todo: ${t.text}`}
                       title="Delete todo"
