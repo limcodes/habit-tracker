@@ -3,6 +3,7 @@ import {
   sortBucketTodos,
   isTomorrowDue,
   promoteDueTomorrowTodos,
+  sweepCompletedTodos,
   TODO_BUCKETS,
   COMPLETED_VISIBLE_DAYS,
 } from './todoUtils';
@@ -10,8 +11,11 @@ import {
 const DAY = 24 * 60 * 60 * 1000;
 const now = 1_700_000_000_000; // fixed reference epoch ms
 
-test('exposes the four bucket ids and the visibility window', () => {
-  expect(TODO_BUCKETS).toEqual(['inbox', 'today', 'tomorrow', 'anytime']);
+// Local noon on a given day formats to that day's yyyy-MM-dd in any sane TZ.
+const localNoon = (y, m, d) => new Date(y, m - 1, d, 12, 0, 0);
+
+test('exposes the five bucket ids (including done) and the visibility window', () => {
+  expect(TODO_BUCKETS).toEqual(['inbox', 'today', 'tomorrow', 'anytime', 'done']);
   expect(COMPLETED_VISIBLE_DAYS).toBe(7);
 });
 
@@ -88,5 +92,71 @@ describe('Tomorrow → Today promotion', () => {
     const todos = [{ id: 'tm', bucket: 'tomorrow', completed: false, order: 0, promoteOn: '2026-12-31' }];
     const { updates } = promoteDueTomorrowTodos(todos, '2026-06-19');
     expect(updates).toEqual([]);
+  });
+});
+
+describe('Sweep completed → Done', () => {
+  test('sweeps a todo completed before today into the done bucket', () => {
+    const todos = [
+      { id: 'a', bucket: 'today', completed: true, completedAt: localNoon(2026, 6, 19) },
+    ];
+    const { todos: result, updates } = sweepCompletedTodos(todos, '2026-06-20');
+    expect(result.find(t => t.id === 'a')).toMatchObject({ bucket: 'done' });
+    expect(updates).toEqual([{ id: 'a', bucket: 'done' }]);
+  });
+
+  test('leaves a todo completed today in its own bucket (same-day grace)', () => {
+    const todos = [
+      { id: 'a', bucket: 'today', completed: true, completedAt: localNoon(2026, 6, 20) },
+      { id: 'b', bucket: 'anytime', completed: true, completedAt: localNoon(2026, 6, 20) },
+    ];
+    const { todos: result, updates } = sweepCompletedTodos(todos, '2026-06-20');
+    expect(result.find(t => t.id === 'a').bucket).toBe('today');
+    expect(result.find(t => t.id === 'b').bucket).toBe('anytime');
+    expect(updates).toEqual([]);
+  });
+
+  test('grace applies to every bucket, not just today', () => {
+    const todos = [
+      { id: 'i', bucket: 'inbox', completed: true, completedAt: localNoon(2026, 6, 19) },
+      { id: 'a', bucket: 'anytime', completed: true, completedAt: localNoon(2026, 6, 19) },
+    ];
+    const { updates } = sweepCompletedTodos(todos, '2026-06-20');
+    expect(updates.map(u => u.id).sort()).toEqual(['a', 'i']);
+  });
+
+  test('does not re-sweep an item already in done', () => {
+    const todos = [
+      { id: 'a', bucket: 'done', completed: true, completedAt: localNoon(2026, 6, 19) },
+    ];
+    const { updates } = sweepCompletedTodos(todos, '2026-06-20');
+    expect(updates).toEqual([]);
+  });
+
+  test('never sweeps incomplete todos', () => {
+    const todos = [{ id: 'a', bucket: 'today', completed: false, completedAt: null }];
+    const { updates } = sweepCompletedTodos(todos, '2026-06-20');
+    expect(updates).toEqual([]);
+  });
+
+  test('leaves a completed todo with no completedAt in place (fail-safe)', () => {
+    const todos = [{ id: 'a', bucket: 'today', completed: true, completedAt: null }];
+    const { todos: result, updates } = sweepCompletedTodos(todos, '2026-06-20');
+    expect(result.find(t => t.id === 'a').bucket).toBe('today');
+    expect(updates).toEqual([]);
+  });
+
+  test('accepts a Firestore-style Timestamp with toMillis()', () => {
+    const ts = { toMillis: () => localNoon(2026, 6, 19).getTime() };
+    const todos = [{ id: 'a', bucket: 'today', completed: true, completedAt: ts }];
+    const { updates } = sweepCompletedTodos(todos, '2026-06-20');
+    expect(updates).toEqual([{ id: 'a', bucket: 'done' }]);
+  });
+
+  test('does not mutate its input', () => {
+    const todos = [{ id: 'a', bucket: 'today', completed: true, completedAt: localNoon(2026, 6, 19) }];
+    const snapshot = JSON.parse(JSON.stringify(todos));
+    sweepCompletedTodos(todos, '2026-06-20');
+    expect(JSON.parse(JSON.stringify(todos))).toEqual(snapshot);
   });
 });

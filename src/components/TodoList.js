@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { isTodoVisible, sortBucketTodos, TODO_BUCKETS } from '../utils/todoUtils';
 
-const BUCKET_LABELS = { inbox: 'Inbox', today: 'Today', tomorrow: 'Tomorrow', anytime: 'Anytime' };
+const BUCKET_LABELS = { inbox: 'Inbox', today: 'Today', tomorrow: 'Tomorrow', anytime: 'Anytime', done: 'Done' };
 
 function TodoList({
   todos,
@@ -71,8 +71,9 @@ function TodoList({
   };
 
   // --- Move to another bucket (drop onto a tab) ---
+  // Done is reachable only via the auto-sweep, never by dragging an active todo in.
   const handleTabDragOver = (e, bucket) => {
-    if (draggedId === null) return;
+    if (draggedId === null || bucket === 'done') return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     setDragOverBucket(bucket);
@@ -82,7 +83,7 @@ function TodoList({
 
   const handleTabDrop = (e, bucket) => {
     e.preventDefault();
-    if (draggedId !== null) moveTodoToBucket(draggedId, bucket);
+    if (draggedId !== null && bucket !== 'done') moveTodoToBucket(draggedId, bucket);
     clearDragState();
   };
 
@@ -170,17 +171,19 @@ function TodoList({
         </ul>
       )}
 
-      <div className="todo-input">
-        <input
-          type="text"
-          value={newTodoText}
-          onChange={(e) => setNewTodoText(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') addTodo(); }}
-          placeholder="Add a todo"
-          aria-label="New todo"
-        />
-        <button onClick={addTodo}>Add Todo</button>
-      </div>
+      {activeTodoBucket !== 'done' && (
+        <div className="todo-input">
+          <input
+            type="text"
+            value={newTodoText}
+            onChange={(e) => setNewTodoText(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') addTodo(); }}
+            placeholder="Add a todo"
+            aria-label="New todo"
+          />
+          <button onClick={addTodo}>Add Todo</button>
+        </div>
+      )}
     </div>
   );
 }

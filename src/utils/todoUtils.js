@@ -1,7 +1,9 @@
 // Pure display helpers for the todo section. Kept free of Firestore/React so
 // they can be unit-tested in isolation (mirrors calculateStreak in App.js).
 
-export const TODO_BUCKETS = ['inbox', 'today', 'tomorrow', 'anytime'];
+import { format } from 'date-fns';
+
+export const TODO_BUCKETS = ['inbox', 'today', 'tomorrow', 'anytime', 'done'];
 export const COMPLETED_VISIBLE_DAYS = 7;
 
 // Normalize a completedAt value (Firestore Timestamp | Date | epoch ms | null)
@@ -60,5 +62,28 @@ export const promoteDueTomorrowTodos = (todos, todayStr) => {
     promoted.has(t.id) ? { ...t, ...promoted.get(t.id) } : t
   );
   const updates = dueSorted.map((t) => ({ id: t.id, ...promoted.get(t.id) }));
+  return { todos: updatedTodos, updates };
+};
+
+// A completed todo "belongs" to the local day it was completed. Once a later day
+// arrives, sweep it out of its bucket into Done. Items completed today are left
+// in place (same-day grace), as are those already in Done or lacking a datable
+// completedAt (fail-safe — never sweep what we can't date).
+// Returns { todos, updates } — `updates` lists docs to persist ({ id, bucket });
+// empty when nothing is due.
+export const sweepCompletedTodos = (todos, todayStr) => {
+  const sweptIds = new Set();
+  for (const t of todos) {
+    if (!t.completed || t.bucket === 'done') continue;
+    const completedMs = toMillis(t.completedAt);
+    if (completedMs == null) continue;
+    if (format(completedMs, 'yyyy-MM-dd') < todayStr) sweptIds.add(t.id);
+  }
+  if (sweptIds.size === 0) return { todos, updates: [] };
+
+  const updatedTodos = todos.map((t) =>
+    sweptIds.has(t.id) ? { ...t, bucket: 'done' } : t
+  );
+  const updates = [...sweptIds].map((id) => ({ id, bucket: 'done' }));
   return { todos: updatedTodos, updates };
 };

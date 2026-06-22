@@ -15,7 +15,7 @@ import TodoList from './components/TodoList';
 
 // Import utilities
 import { parseNoteText } from './utils/textFormatter';
-import { isTodoVisible, promoteDueTomorrowTodos } from './utils/todoUtils';
+import { isTodoVisible, promoteDueTomorrowTodos, sweepCompletedTodos } from './utils/todoUtils';
 
 // Count consecutive completed days ending at the most recent entry. Exported
 // for unit testing. Does not mutate its input.
@@ -215,7 +215,14 @@ function App() {
               })
             )
           );
-          setTodos(promotedTodos);
+          // Sweep todos completed on a past day out of their bucket into Done.
+          const { todos: sweptTodos, updates: sweepUpdates } = sweepCompletedTodos(promotedTodos, todayStr);
+          await Promise.all(
+            sweepUpdates.map(u =>
+              updateDoc(doc(db, 'users', user.uid, 'todos', u.id), { bucket: u.bucket })
+            )
+          );
+          setTodos(sweptTodos);
         } catch (error) {
           console.error('Error fetching todos:', error);
         } finally {
@@ -429,10 +436,21 @@ function App() {
     if (!todo) return;
     const completed = !todo.completed;
     const completedAt = completed ? Timestamp.now() : null;
+    // Re-activating an item that has been swept into Done sends it to Inbox as an
+    // active task (appended after Inbox's existing incomplete todos).
+    const reviveFromDone = !completed && todo.bucket === 'done';
+    const changes = reviveFromDone
+      ? {
+          completed,
+          completedAt,
+          bucket: 'inbox',
+          order: todos.filter(t => t.bucket === 'inbox' && !t.completed).length,
+        }
+      : { completed, completedAt };
     try {
       const todoRef = doc(db, 'users', user.uid, 'todos', todoId);
-      await updateDoc(todoRef, { completed, completedAt });
-      setTodos(todos.map(t => t.id === todoId ? { ...t, completed, completedAt } : t));
+      await updateDoc(todoRef, changes);
+      setTodos(todos.map(t => t.id === todoId ? { ...t, ...changes } : t));
     } catch (error) {
       console.error('Error toggling todo:', error);
     }
