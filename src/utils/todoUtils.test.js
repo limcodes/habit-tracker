@@ -50,6 +50,16 @@ test('sorts incomplete by order, then completed by completedAt desc', () => {
   expect(sortBucketTodos(todos).map(t => t.id)).toEqual(['i-0', 'i-1', 'c-new', 'c-old']);
 });
 
+test('sortBucketTodos can group by a custom completion predicate (frozen view)', () => {
+  // 'a' is live-incomplete but frozen as completed; it should sink below 'b'.
+  const todos = [
+    { id: 'a', completed: false, order: 0, completedAt: now - 1 * DAY },
+    { id: 'b', completed: false, order: 1 },
+  ];
+  const frozenCompleted = new Set(['a']);
+  expect(sortBucketTodos(todos, (t) => frozenCompleted.has(t.id)).map(t => t.id)).toEqual(['b', 'a']);
+});
+
 test('sortBucketTodos does not mutate its input', () => {
   const todos = [{ id: 'b', completed: false, order: 1 }, { id: 'a', completed: false, order: 0 }];
   const snapshot = [...todos];

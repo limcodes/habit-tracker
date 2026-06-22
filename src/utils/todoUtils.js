@@ -28,10 +28,15 @@ export const isTodoVisible = (todo, nowMs) => {
 
 // Sort a single bucket's todos for display: incomplete first by `order`
 // ascending, then completed by completion time descending. Returns a new array.
-export const sortBucketTodos = (todos) => {
+// `isCompleted` lets callers group by a frozen completion snapshot instead of the
+// live `completed` flag, so a just-checked item doesn't sink until the view is
+// re-entered (defaults to the live flag).
+export const sortBucketTodos = (todos, isCompleted = (t) => !!t.completed) => {
   return [...todos].sort((a, b) => {
-    if (!a.completed !== !b.completed) return a.completed ? 1 : -1;
-    if (!a.completed) return (a.order ?? 0) - (b.order ?? 0);
+    const ac = isCompleted(a);
+    const bc = isCompleted(b);
+    if (ac !== bc) return ac ? 1 : -1;
+    if (!ac) return (a.order ?? 0) - (b.order ?? 0);
     return (toMillis(b.completedAt) ?? 0) - (toMillis(a.completedAt) ?? 0);
   });
 };

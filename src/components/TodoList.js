@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { isTodoVisible, sortBucketTodos, TODO_BUCKETS } from '../utils/todoUtils';
 
 const BUCKET_LABELS = { inbox: 'Inbox', today: 'Today', tomorrow: 'Tomorrow', anytime: 'Anytime', done: 'Done' };
@@ -26,12 +26,32 @@ function TodoList({
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const [dragOverBucket, setDragOverBucket] = useState(null);
+  const viewSnapshotRef = useRef({ bucket: null, loading: null, completedIds: new Set() });
 
   const nowMs = Date.now();
-  const bucketTodos = sortBucketTodos(
-    todos.filter((t) => t.bucket === activeTodoBucket && isTodoVisible(t, nowMs))
-  );
-  // Drag-reorder applies only to the incomplete todos in this bucket; their
+  const visibleTodos = todos.filter((t) => t.bucket === activeTodoBucket && isTodoVisible(t, nowMs));
+
+  // "Completed-at-view" snapshot. A checked item only sinks to the bottom of the
+  // list once the view is (re)entered or freshly loaded — not the instant you
+  // check it. We freeze which ids count as completed for sorting and recompute
+  // that set only when the active bucket changes or a fetch finishes (loading
+  // true→false). Toggling completion mid-view leaves the snapshot untouched, so a
+  // just-checked item stays in place (crossed out) until you switch tabs or refresh.
+  const snap = viewSnapshotRef.current;
+  const loadFinished = snap.loading === true && todosLoading === false;
+  if (snap.bucket !== activeTodoBucket || loadFinished) {
+    viewSnapshotRef.current = {
+      bucket: activeTodoBucket,
+      loading: todosLoading,
+      completedIds: new Set(visibleTodos.filter((t) => t.completed).map((t) => t.id)),
+    };
+  } else {
+    snap.loading = todosLoading;
+  }
+  const completedAtView = (t) => viewSnapshotRef.current.completedIds.has(t.id);
+
+  const bucketTodos = sortBucketTodos(visibleTodos, completedAtView);
+  // Drag-reorder applies only to the (live) incomplete todos in this bucket; their
   // position in this array is the index used by the reorder handlers.
   const incompleteTodos = bucketTodos.filter((t) => !t.completed);
 
